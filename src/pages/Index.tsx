@@ -247,7 +247,7 @@ const SectionBento = () => {
         <LiquidGlassPanel className="md:col-span-1 p-8 flex flex-col justify-between group">
           <div className="space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6">
-              <GlobeHemisphere weight="duotone" className="text-zinc-300 w-6 h-6" />
+              <GlobeHemisphereWest weight="duotone" className="text-zinc-300 w-6 h-6" />
             </div>
             <h3 className="text-2xl font-bold text-white tracking-tight">Global Connectivity</h3>
             <p className="text-zinc-500 text-sm max-w-[25ch] leading-relaxed">
