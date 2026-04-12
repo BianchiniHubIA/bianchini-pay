@@ -15,7 +15,7 @@ import {
   ChartLineUp,
   Lightning,
   CaretRight,
-  GlobeHemisphere,
+  GlobeHemisphereWest,
   Faders,
   CaretDown,
   CheckCircle,
