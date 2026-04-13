@@ -91,81 +91,112 @@ export function ProductGeneralTab({ product, onSave }: Props) {
         </CardContent>
       </Card>
 
-      {/* Offers / Prices */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                <DollarSign className="h-4 w-4 text-emerald-500" />
+      {/* Offers / Prices / Plans */}
+      {(() => {
+        const hasRecurring = offers?.some((o) => o.billing_type === "recurring");
+        const intervalLabels: Record<string, string> = {
+          monthly: "Mensal",
+          quarterly: "Trimestral",
+          semiannual: "Semestral",
+          annual: "Anual",
+        };
+        return (
+          <Card>
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <DollarSign className="h-4 w-4 text-emerald-500" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">
+                      {hasRecurring ? "Planos de Assinatura" : "Ofertas e Preços"}
+                    </CardTitle>
+                    <CardDescription>
+                      {hasRecurring
+                        ? "Gerencie os planos de assinatura do seu produto (mensal, trimestral, anual, etc.)"
+                        : "Gerencie as ofertas vinculadas a este produto"}
+                    </CardDescription>
+                  </div>
+                </div>
+                <Button size="sm" onClick={() => setOfferFormOpen(true)} className="gap-1.5">
+                  <Plus className="h-3.5 w-3.5" /> {hasRecurring ? "Novo plano" : "Nova oferta"}
+                </Button>
               </div>
-              <div>
-                <CardTitle className="text-base">Ofertas e Preços</CardTitle>
-                <CardDescription>Gerencie as ofertas vinculadas a este produto</CardDescription>
-              </div>
-            </div>
-            <Button size="sm" onClick={() => setOfferFormOpen(true)} className="gap-1.5">
-              <Plus className="h-3.5 w-3.5" /> Nova oferta
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {offersLoading ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">Carregando...</p>
-          ) : !offers?.length ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <DollarSign className="h-10 w-10 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">Nenhuma oferta criada</p>
-              <p className="text-xs mt-1">Crie uma oferta para definir preços e métodos de cobrança</p>
-            </div>
-          ) : (
-            <div className="rounded-lg border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/30 hover:bg-muted/30">
-                    <TableHead className="font-semibold">Nome</TableHead>
-                    <TableHead className="font-semibold">Preço</TableHead>
-                    <TableHead className="font-semibold">Tipo</TableHead>
-                    <TableHead className="font-semibold">Status</TableHead>
-                    <TableHead className="w-10"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {offers.map((offer) => (
-                    <TableRow key={offer.id}>
-                      <TableCell className="font-medium">{offer.name}</TableCell>
-                      <TableCell className="font-mono text-sm">{formatCents(offer.price_cents)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {offer.billing_type === "one_time" ? "Vitalício" : "Assinatura"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={offer.is_active ? "default" : "secondary"} className="text-xs">
-                          {offer.is_active ? "Ativo" : "Inativo"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={async () => {
-                            await deleteOffer.mutateAsync(offer.id);
-                            toast.success("Oferta excluída!");
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+              {offersLoading ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">Carregando...</p>
+              ) : !offers?.length ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <DollarSign className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">Nenhuma oferta criada</p>
+                  <p className="text-xs mt-1">Crie uma oferta para definir preços e métodos de cobrança</p>
+                </div>
+              ) : (
+                <div className="rounded-lg border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/30 hover:bg-muted/30">
+                        <TableHead className="font-semibold">Nome</TableHead>
+                        <TableHead className="font-semibold">Preço</TableHead>
+                        <TableHead className="font-semibold">Tipo</TableHead>
+                        {hasRecurring && <TableHead className="font-semibold">Intervalo</TableHead>}
+                        {hasRecurring && <TableHead className="font-semibold">Trial</TableHead>}
+                        <TableHead className="font-semibold">Status</TableHead>
+                        <TableHead className="w-10"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {offers.map((offer) => (
+                        <TableRow key={offer.id}>
+                          <TableCell className="font-medium">{offer.name}</TableCell>
+                          <TableCell className="font-mono text-sm">{formatCents(offer.price_cents)}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {offer.billing_type === "one_time" ? "Único" : "Recorrente"}
+                            </Badge>
+                          </TableCell>
+                          {hasRecurring && (
+                            <TableCell className="text-sm">
+                              {offer.billing_type === "recurring" && offer.billing_interval
+                                ? intervalLabels[offer.billing_interval] ?? offer.billing_interval
+                                : "—"}
+                            </TableCell>
+                          )}
+                          {hasRecurring && (
+                            <TableCell className="text-sm">
+                              {offer.trial_days ? `${offer.trial_days} dias` : "—"}
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            <Badge variant={offer.is_active ? "default" : "secondary"} className="text-xs">
+                              {offer.is_active ? "Ativo" : "Inativo"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={async () => {
+                                await deleteOffer.mutateAsync(offer.id);
+                                toast.success("Oferta excluída!");
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Support */}
       <Card>
