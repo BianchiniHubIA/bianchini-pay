@@ -51,7 +51,7 @@ export function useCheckoutPageBySlug(slug: string | null) {
     queryFn: async () => {
       if (!slug) return null;
       const { data, error } = await supabase
-        .from("checkout_pages")
+        .from("public_checkout_pages" as any)
         .select("*")
         .eq("slug", slug)
         .eq("is_published", true)
