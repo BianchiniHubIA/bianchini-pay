@@ -5,7 +5,7 @@ import {
   ShoppingBag,
   UsersRound,
   UserPlus,
-  PanelTop,
+  
   MousePointerClick,
   BarChart3,
   HandCoins,
