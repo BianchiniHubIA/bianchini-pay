@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOffersByProduct, useCreateOffer, useDeleteOffer } from "@/hooks/useOffers";
 import { OfferFormDialog } from "@/components/products/OfferFormDialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Package, DollarSign, Headphones, Save } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/hooks/useProducts";
 
@@ -40,152 +40,169 @@ export function ProductGeneralTab({ product, onSave }: Props) {
     onSave({ name, description, type, guarantee_days: guaranteeDays, sales_page_url: salesPageUrl, support_email: supportEmail, producer_name: producerName });
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr] mt-4">
-      {/* Left: Info */}
-      <div className="space-y-6">
-        <div>
-          <h3 className="font-heading font-bold text-lg">Produto</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            A aprovação do produto é instantânea, ou seja, você pode cadastrar e já começar a vender.
-          </p>
-        </div>
-
-        <div className="pt-6 border-t">
-          <h3 className="font-heading font-bold text-lg">Preços</h3>
-          <p className="text-sm text-muted-foreground mt-1">Gerencie as ofertas do produto</p>
-        </div>
-
-        <div className="pt-6 border-t">
-          <h3 className="font-heading font-bold text-lg">Suporte ao cliente</h3>
-          <p className="text-sm text-muted-foreground mt-1">Preencha os dados de suporte ao cliente</p>
-        </div>
-      </div>
-
-      {/* Right: Form */}
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="space-y-4 pt-6">
+    <div className="space-y-6 max-w-4xl">
+      {/* Product info */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Package className="h-4 w-4 text-primary" />
+            </div>
             <div>
+              <CardTitle className="text-base">Informações do Produto</CardTitle>
+              <CardDescription>Dados básicos do seu produto</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label>Nome do produto</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Curso de Marketing Digital" />
             </div>
-            <div>
+            <div className="space-y-2 sm:col-span-2">
               <Label>Descrição</Label>
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Uma breve descrição do seu produto..." />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Categoria</Label>
-                <Select value={type} onValueChange={(v: any) => setType(v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="digital">Digital</SelectItem>
-                    <SelectItem value="physical">Físico</SelectItem>
-                    <SelectItem value="service">Serviço</SelectItem>
-                  </SelectContent>
-                </Select>
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <Select value={type} onValueChange={(v: any) => setType(v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="digital">Digital</SelectItem>
+                  <SelectItem value="physical">Físico</SelectItem>
+                  <SelectItem value="service">Serviço</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Garantia</Label>
+              <Select value={String(guaranteeDays)} onValueChange={(v) => setGuaranteeDays(Number(v))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Sem garantia</SelectItem>
+                  <SelectItem value="7">7 dias</SelectItem>
+                  <SelectItem value="15">15 dias</SelectItem>
+                  <SelectItem value="30">30 dias</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Offers / Prices */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <DollarSign className="h-4 w-4 text-emerald-500" />
               </div>
               <div>
-                <Label>Garantia</Label>
-                <Select value={String(guaranteeDays)} onValueChange={(v) => setGuaranteeDays(Number(v))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Sem garantia</SelectItem>
-                    <SelectItem value="7">7 dias</SelectItem>
-                    <SelectItem value="15">15 dias</SelectItem>
-                    <SelectItem value="30">30 dias</SelectItem>
-                  </SelectContent>
-                </Select>
+                <CardTitle className="text-base">Ofertas e Preços</CardTitle>
+                <CardDescription>Gerencie as ofertas vinculadas a este produto</CardDescription>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <Button size="sm" onClick={() => setOfferFormOpen(true)} className="gap-1.5">
+              <Plus className="h-3.5 w-3.5" /> Nova oferta
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {offersLoading ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">Carregando...</p>
+          ) : !offers?.length ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <DollarSign className="h-10 w-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">Nenhuma oferta criada</p>
+              <p className="text-xs mt-1">Crie uma oferta para definir preços e métodos de cobrança</p>
+            </div>
+          ) : (
+            <div className="rounded-lg border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30 hover:bg-muted/30">
+                    <TableHead className="font-semibold">Nome</TableHead>
+                    <TableHead className="font-semibold">Preço</TableHead>
+                    <TableHead className="font-semibold">Tipo</TableHead>
+                    <TableHead className="font-semibold">Status</TableHead>
+                    <TableHead className="w-10"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {offers.map((offer) => (
+                    <TableRow key={offer.id}>
+                      <TableCell className="font-medium">{offer.name}</TableCell>
+                      <TableCell className="font-mono text-sm">{formatCents(offer.price_cents)}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {offer.billing_type === "one_time" ? "Vitalício" : "Assinatura"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={offer.is_active ? "default" : "secondary"} className="text-xs">
+                          {offer.is_active ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={async () => {
+                            await deleteOffer.mutateAsync(offer.id);
+                            toast.success("Oferta excluída!");
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        {/* Offers / Prices */}
-        <Card>
-          <CardContent className="pt-6">
-            {offersLoading ? (
-              <p className="text-sm text-muted-foreground">Carregando...</p>
-            ) : (
-              <>
-                {offers && offers.length > 0 && (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Preço</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead className="w-10">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {offers.map((offer) => (
-                        <TableRow key={offer.id}>
-                          <TableCell>{offer.name}</TableCell>
-                          <TableCell>{formatCents(offer.price_cents)}</TableCell>
-                          <TableCell>{offer.billing_type === "one_time" ? "Único" : "Recorrente"}</TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-destructive"
-                              onClick={async () => {
-                                await deleteOffer.mutateAsync(offer.id);
-                                toast.success("Oferta excluída!");
-                              }}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-                <div className="flex items-center gap-3 mt-3">
-                  <Button size="sm" onClick={() => setOfferFormOpen(true)}>
-                    <Plus className="h-4 w-4" /> Adicionar
-                  </Button>
-                  <span className="text-xs text-muted-foreground">{offers?.length ?? 0} / 10</span>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Support */}
-        <Card>
-          <CardContent className="space-y-4 pt-6">
+      {/* Support */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <Headphones className="h-4 w-4 text-blue-500" />
+            </div>
             <div>
+              <CardTitle className="text-base">Suporte ao Cliente</CardTitle>
+              <CardDescription>Informações de contato e suporte</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
               <Label>Página de vendas</Label>
-              <Input
-                value={salesPageUrl}
-                onChange={(e) => setSalesPageUrl(e.target.value)}
-                placeholder="https://seusite.com/"
-              />
+              <Input value={salesPageUrl} onChange={(e) => setSalesPageUrl(e.target.value)} placeholder="https://seusite.com/" />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>E-mail de suporte</Label>
-              <Input
-                value={supportEmail}
-                onChange={(e) => setSupportEmail(e.target.value)}
-                placeholder="suporte@email.com"
-              />
+              <Input value={supportEmail} onChange={(e) => setSupportEmail(e.target.value)} placeholder="suporte@email.com" />
             </div>
-            <div>
+            <div className="space-y-2 sm:col-span-2">
               <Label>Nome de exibição do produtor</Label>
-              <Input
-                value={producerName}
-                onChange={(e) => setProducerName(e.target.value)}
-                placeholder="Seu nome"
-              />
+              <Input value={producerName} onChange={(e) => setProducerName(e.target.value)} placeholder="Seu nome ou marca" />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="flex justify-end">
-          <Button onClick={handleSave}>Salvar</Button>
-        </div>
+      {/* Save button */}
+      <div className="flex justify-end pb-4">
+        <Button onClick={handleSave} className="gap-2">
+          <Save className="h-4 w-4" /> Salvar alterações
+        </Button>
       </div>
 
       <OfferFormDialog

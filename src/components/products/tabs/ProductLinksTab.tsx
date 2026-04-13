@@ -1,13 +1,10 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Copy, Search } from "lucide-react";
+import { Copy, ExternalLink, Link2 } from "lucide-react";
 import { useOffersByProduct } from "@/hooks/useOffers";
 import { useCheckoutPageByOffer } from "@/hooks/useCheckoutPages";
 import type { Product } from "@/hooks/useProducts";
-import { useState } from "react";
 import { toast } from "sonner";
 
 function formatCents(cents: number) {
@@ -18,7 +15,7 @@ interface Props {
   product: Product;
 }
 
-function CheckoutLinkRow({ offerId, offerName, priceCents }: { offerId: string; offerName: string; priceCents: number }) {
+function CheckoutLinkCard({ offerId, offerName, priceCents }: { offerId: string; offerName: string; priceCents: number }) {
   const { data: checkoutPage } = useCheckoutPageByOffer(offerId);
   const baseUrl = window.location.origin;
 
@@ -31,71 +28,68 @@ function CheckoutLinkRow({ offerId, offerName, priceCents }: { offerId: string; 
   };
 
   return (
-    <TableRow>
-      <TableCell className="font-medium">{checkoutPage.headline}</TableCell>
-      <TableCell>
-        <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={copyLink}>
-          <Copy className="h-3 w-3" />
-          {url.length > 40 ? url.slice(0, 40) + "..." : url}
+    <div className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <p className="font-medium text-sm truncate">{offerName}</p>
+          <Badge variant={checkoutPage.is_published ? "default" : "secondary"} className="text-xs shrink-0">
+            {checkoutPage.is_published ? "Publicado" : "Rascunho"}
+          </Badge>
+        </div>
+        <p className="text-xs text-muted-foreground font-mono truncate">{url}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">{formatCents(priceCents)}</p>
+      </div>
+      <div className="flex items-center gap-1.5 ml-3">
+        <Button variant="outline" size="icon" className="h-8 w-8" onClick={copyLink}>
+          <Copy className="h-3.5 w-3.5" />
         </Button>
-      </TableCell>
-      <TableCell className="text-xs">{offerName}</TableCell>
-      <TableCell><Badge variant="secondary" className="text-xs">Checkout</Badge></TableCell>
-      <TableCell>{formatCents(priceCents)}</TableCell>
-      <TableCell>
-        <Badge variant={checkoutPage.is_published ? "default" : "secondary"} className="text-xs">
-          {checkoutPage.is_published ? "Ativo" : "Inativo"}
-        </Badge>
-      </TableCell>
-    </TableRow>
+        <Button variant="outline" size="icon" className="h-8 w-8" asChild>
+          <a href={url} target="_blank" rel="noreferrer">
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        </Button>
+      </div>
+    </div>
   );
 }
 
 export function ProductLinksTab({ product }: Props) {
-  const [search, setSearch] = useState("");
   const { data: offers } = useOffersByProduct(product.id);
 
   return (
-    <div className="space-y-4 mt-4">
+    <div className="space-y-6 max-w-4xl">
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Pesquisar"
-                className="pl-9"
-              />
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+              <Link2 className="h-4 w-4 text-cyan-500" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Links do Checkout</CardTitle>
+              <CardDescription>Links públicos de cada oferta para compartilhar</CardDescription>
             </div>
           </div>
-
+        </CardHeader>
+        <CardContent>
           {!offers?.length ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Nenhum link disponível. Crie uma oferta e publique um checkout primeiro.</p>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
+                <Link2 className="h-8 w-8 text-muted-foreground/30" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">Nenhum link disponível</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">Crie uma oferta e publique o checkout para gerar links</p>
+            </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>URL</TableHead>
-                  <TableHead>Oferta</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Preço</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {offers.map((offer) => (
-                  <CheckoutLinkRow
-                    key={offer.id}
-                    offerId={offer.id}
-                    offerName={offer.name}
-                    priceCents={offer.price_cents}
-                  />
-                ))}
-              </TableBody>
-            </Table>
+            <div className="space-y-3">
+              {offers.map((offer) => (
+                <CheckoutLinkCard
+                  key={offer.id}
+                  offerId={offer.id}
+                  offerName={offer.name}
+                  priceCents={offer.price_cents}
+                />
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
