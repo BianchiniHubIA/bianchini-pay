@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { User, Mail, Phone, CreditCard, FileText } from "lucide-react";
+import { User, Mail, Phone, FileText } from "lucide-react";
+import { PixIcon, CreditCardIcon, BoletoIcon } from "@/components/icons/PaymentIcons";
 
 interface LeadCaptureFormProps {
   primaryColor: string;
@@ -48,9 +49,9 @@ export function LeadCaptureForm({
   };
 
   const allPaymentMethods = [
-    { id: "pix", label: "Pix", icon: "⚡" },
-    { id: "credit_card", label: "Cartão de Crédito", icon: "💳" },
-    { id: "boleto", label: "Boleto", icon: "📄" },
+    { id: "pix", label: "Pix", icon: <PixIcon className="h-5 w-5" /> },
+    { id: "credit_card", label: "Cartão de Crédito", icon: <CreditCardIcon className="h-5 w-5 text-blue-400" /> },
+    { id: "boleto", label: "Boleto", icon: <BoletoIcon className="h-5 w-5 text-gray-500" /> },
   ];
 
   const paymentMethods = isRecurring
@@ -114,7 +115,7 @@ export function LeadCaptureForm({
                 fontWeight: form.paymentMethod === m.id ? 600 : 400,
               }}
             >
-              <span className="text-base">{m.icon}</span>
+              <span className="flex-shrink-0">{m.icon}</span>
               <span>{m.label}</span>
             </button>
           ))}
