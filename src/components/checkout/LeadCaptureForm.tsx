@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { User, Mail, Phone, CreditCard, FileText } from "lucide-react";
+import { User, Mail, Phone, FileText } from "lucide-react";
+import { PixIcon, CreditCardIcon, BoletoIcon } from "@/components/icons/PaymentIcons";
 
 interface LeadCaptureFormProps {
   primaryColor: string;
