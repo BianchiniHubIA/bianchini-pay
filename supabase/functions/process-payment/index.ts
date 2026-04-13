@@ -12,15 +12,17 @@ const MP_API = "https://api.mercadopago.com";
 interface PaymentRequest {
   offer_id: string;
   checkout_page_id: string;
-  payment_method: string; // "pix" | "credit_card" | "boleto"
+  payment_method: string;
   customer: {
     name: string;
     email: string;
-    document: string; // CPF
+    document: string;
     whatsapp?: string;
   };
-  card_token?: string; // For credit card payments
+  card_token?: string;
   installments?: number;
+  amount_cents?: number;
+  coupon_code?: string;
 }
 
 Deno.serve(async (req) => {
@@ -31,7 +33,6 @@ Deno.serve(async (req) => {
   try {
     const body: PaymentRequest = await req.json();
 
-    // Validate required fields
     if (!body.offer_id || !body.checkout_page_id || !body.payment_method || !body.customer) {
       return new Response(
         JSON.stringify({ error: "Campos obrigatórios: offer_id, checkout_page_id, payment_method, customer" }),
@@ -48,7 +49,6 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Fetch checkout page to get organization_id
     const { data: checkoutPage, error: cpError } = await supabase
       .from("checkout_pages")
       .select("organization_id, offer_id")
@@ -62,7 +62,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch offer details
     const { data: offer, error: offerError } = await supabase
       .from("offers")
       .select("*, products:product_id(name)")
@@ -76,7 +75,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch Mercado Pago credentials from payment_gateways
     const { data: gateway, error: gwError } = await supabase
       .from("payment_gateways")
       .select("credentials")
@@ -102,7 +100,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create or find customer
     const { data: customer } = await supabase
       .from("customers")
       .upsert(
@@ -119,41 +116,32 @@ Deno.serve(async (req) => {
       .single();
 
     const productName = (offer as any).products?.name || offer.name;
-    const isRecurring = offer.billing_type === "recurring";
+    const finalAmountCents = body.amount_cents || offer.price_cents;
 
-    let paymentResult: any;
+    // All payments (one-time and recurring) are processed as direct payments
+    // For recurring, we create the first payment and store subscription info
+    const paymentResult = await createPayment({
+      accessToken,
+      amountCents: finalAmountCents,
+      customer: body.customer,
+      productName,
+      paymentMethod: body.payment_method,
+      cardToken: body.card_token,
+      installments: body.installments,
+    });
 
-    if (isRecurring) {
-      // ── SUBSCRIPTION (preapproval) ──
-      paymentResult = await createSubscription({
-        accessToken,
-        offer,
-        customer: body.customer,
-        productName,
-      });
-    } else {
-      // ── ONE-TIME PAYMENT ──
-      paymentResult = await createPayment({
-        accessToken,
-        offer,
-        customer: body.customer,
-        productName,
-        paymentMethod: body.payment_method,
-        cardToken: body.card_token,
-        installments: body.installments,
-      });
-    }
+    // Determine order status
+    const orderStatus = paymentResult.status === "approved" ? "paid" : "pending";
 
-    // Create order in our database
     const { data: order } = await supabase
       .from("orders")
       .insert({
         organization_id: checkoutPage.organization_id,
         customer_id: customer?.id || null,
         offer_id: body.offer_id,
-        amount_cents: offer.price_cents,
+        amount_cents: finalAmountCents,
         payment_method: body.payment_method,
-        status: paymentResult.status === "approved" ? "paid" : "pending",
+        status: orderStatus,
         external_id: paymentResult.id?.toString() || null,
       })
       .select()
@@ -166,15 +154,11 @@ Deno.serve(async (req) => {
           id: paymentResult.id,
           status: paymentResult.status,
           status_detail: paymentResult.status_detail || null,
-          // Pix data
           qr_code: paymentResult.point_of_interaction?.transaction_data?.qr_code || null,
           qr_code_base64: paymentResult.point_of_interaction?.transaction_data?.qr_code_base64 || null,
           ticket_url: paymentResult.point_of_interaction?.transaction_data?.ticket_url || null,
-          // Boleto data
           barcode: paymentResult.barcode?.content || null,
           boleto_url: paymentResult.transaction_details?.external_resource_url || null,
-          // Subscription data
-          init_point: paymentResult.init_point || null,
         },
         order_id: order?.id || null,
       }),
@@ -190,10 +174,9 @@ Deno.serve(async (req) => {
   }
 });
 
-// ── ONE-TIME PAYMENT ──
 async function createPayment({
   accessToken,
-  offer,
+  amountCents,
   customer,
   productName,
   paymentMethod,
@@ -201,7 +184,7 @@ async function createPayment({
   installments,
 }: {
   accessToken: string;
-  offer: any;
+  amountCents: number;
   customer: { name: string; email: string; document: string };
   productName: string;
   paymentMethod: string;
@@ -209,7 +192,7 @@ async function createPayment({
   installments?: number;
 }) {
   const paymentBody: any = {
-    transaction_amount: offer.price_cents / 100,
+    transaction_amount: amountCents / 100,
     description: productName,
     payer: {
       email: customer.email,
@@ -247,66 +230,6 @@ async function createPayment({
   if (!response.ok) {
     console.error("MP Payment Error:", JSON.stringify(data));
     throw new Error(data.message || `Erro no Mercado Pago [${response.status}]`);
-  }
-
-  return data;
-}
-
-// ── SUBSCRIPTION (preapproval) ──
-async function createSubscription({
-  accessToken,
-  offer,
-  customer,
-  productName,
-}: {
-  accessToken: string;
-  offer: any;
-  customer: { name: string; email: string; document: string };
-  productName: string;
-}) {
-  const frequencyMap: Record<string, { frequency: number; frequency_type: string }> = {
-    monthly: { frequency: 1, frequency_type: "months" },
-    quarterly: { frequency: 3, frequency_type: "months" },
-    semiannual: { frequency: 6, frequency_type: "months" },
-    annual: { frequency: 12, frequency_type: "months" },
-  };
-
-  const interval = offer.billing_interval || "monthly";
-  const freq = frequencyMap[interval] || frequencyMap.monthly;
-
-  const subscriptionBody = {
-    reason: productName,
-    auto_recurring: {
-      frequency: freq.frequency,
-      frequency_type: freq.frequency_type,
-      transaction_amount: offer.price_cents / 100,
-      currency_id: "BRL",
-    },
-    payer_email: customer.email,
-    back_url: `${Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", ".lovable.app") || ""}`,
-    status: "pending",
-  };
-
-  if (offer.trial_days && offer.trial_days > 0) {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() + offer.trial_days);
-    (subscriptionBody.auto_recurring as any).start_date = startDate.toISOString();
-  }
-
-  const response = await fetch(`${MP_API}/preapproval`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(subscriptionBody),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    console.error("MP Subscription Error:", JSON.stringify(data));
-    throw new Error(data.message || `Erro na assinatura Mercado Pago [${response.status}]`);
   }
 
   return data;
