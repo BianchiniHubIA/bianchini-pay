@@ -73,7 +73,7 @@ export function AppSidebar() {
             </div>
             {!collapsed && (
               <span className="text-lg font-heading font-bold text-sidebar-accent-foreground">
-                Bianchini <span className="text-primary">Pay</span>
+                Bianchini <span className="text-primary">Go</span>
               </span>
             )}
           </div>
