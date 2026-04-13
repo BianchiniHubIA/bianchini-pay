@@ -130,7 +130,7 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
     }
   };
 
-  const checkoutUrl = `${window.location.origin}/checkout/${slug}`;
+  const checkoutUrl = `${window.location.origin}/${slug}`;
   const copyUrl = () => {
     navigator.clipboard.writeText(checkoutUrl);
     toast.success("Link copiado!");
@@ -185,7 +185,7 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
               <div className="space-y-2">
                 <Label>Slug (URL)</Label>
                 <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
-                <p className="text-xs text-muted-foreground">/checkout/{slug}</p>
+                <p className="text-xs text-muted-foreground">/{slug}</p>
               </div>
               <Separator />
               <div className="space-y-2">

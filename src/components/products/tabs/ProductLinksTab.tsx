@@ -24,7 +24,7 @@ function CheckoutLinkRow({ offerId, offerName, priceCents }: { offerId: string; 
 
   if (!checkoutPage) return null;
 
-  const url = `${baseUrl}/checkout/${checkoutPage.slug}`;
+  const url = `${baseUrl}/${checkoutPage.slug}`;
   const copyLink = () => {
     navigator.clipboard.writeText(url);
     toast.success("Link copiado!");
