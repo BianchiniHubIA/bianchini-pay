@@ -27,6 +27,30 @@ function formatPrice(cents: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 }
 
+function isLightColor(hex: string): boolean {
+  const c = hex.replace("#", "");
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 155;
+}
+
+function darken(hex: string, amount: number): string {
+  const c = hex.replace("#", "");
+  const r = Math.max(0, parseInt(c.substring(0, 2), 16) - amount);
+  const g = Math.max(0, parseInt(c.substring(2, 4), 16) - amount);
+  const b = Math.max(0, parseInt(c.substring(4, 6), 16) - amount);
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
+
+function lighten(hex: string, amount: number): string {
+  const c = hex.replace("#", "");
+  const r = Math.min(255, parseInt(c.substring(0, 2), 16) + amount);
+  const g = Math.min(255, parseInt(c.substring(2, 4), 16) + amount);
+  const b = Math.min(255, parseInt(c.substring(4, 6), 16) + amount);
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
+
 export function CheckoutPreview({
   template,
   headline,
@@ -62,6 +86,17 @@ export function CheckoutPreview({
     : 0;
   const totalCents = priceCents - discountCents;
 
+  // Derive colors from bgColor
+  const bgIsLight = isLightColor(bgColor || "#FFFFFF");
+  const leftBg = bgIsLight ? "#1a1a1a" : bgColor;
+  const leftText = bgIsLight ? "#ededed" : (isLightColor(bgColor) ? "#1a1a1a" : "#ededed");
+  const rightBg = bgIsLight ? "#f0f0f2" : lighten(bgColor || "#1a1a1a", 15);
+  const rightText = isLightColor(rightBg) ? "#1a1a1a" : "#ededed";
+  const rightMuted = isLightColor(rightBg) ? "rgba(0,0,0,0.45)" : "rgba(255,255,255,0.45)";
+
+  // Accent color fallback
+  const accent = accentColor || primaryColor;
+
   const handleApplyCoupon = async () => {
     if (!couponInput.trim() || !onCouponValidate) return;
     setCouponLoading(true);
@@ -86,55 +121,59 @@ export function CheckoutPreview({
     setCouponError("");
   };
 
+  const leftMuted = `${leftText}40`;
+  const leftSubtle = `${leftText}60`;
+  const leftDivider = `${leftText}12`;
+
   return (
-    <div className="min-h-[600px] flex" style={{ fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }}>
-      {/* LEFT — Dark side */}
+    <div className="min-h-[560px] flex" style={{ fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }}>
+      {/* LEFT — Summary side */}
       <div
-        className="w-1/2 p-10 flex flex-col justify-between"
-        style={{ backgroundColor: "#1a1a1a", color: "#ededed" }}
+        className="w-1/2 p-8 flex flex-col justify-between"
+        style={{ backgroundColor: leftBg, color: leftText }}
       >
         <div>
           {/* Bianchini Pay brand */}
-          <div className="mb-8">
-            <span className="text-lg font-bold tracking-tight" style={{ color: "#ededed" }}>
+          <div className="mb-6">
+            <span className="text-base font-bold tracking-tight" style={{ color: leftText }}>
               Bianchini{" "}
               <span style={{ color: primaryColor }}>Pay</span>
             </span>
           </div>
 
           {/* Product name + price */}
-          <p className="text-sm mb-1" style={{ color: "rgba(237,237,237,0.55)" }}>
+          <p className="text-xs mb-0.5" style={{ color: leftSubtle }}>
             {isRecurring ? "Assinar" : "Comprar"} {offerName}
           </p>
-          <div className="flex items-baseline gap-2 mb-1">
-            <span className="text-4xl font-bold tracking-tight">{formatPrice(totalCents)}</span>
+          <div className="flex items-baseline gap-2 mb-0.5">
+            <span className="text-3xl font-bold tracking-tight">{formatPrice(totalCents)}</span>
             {isRecurring && (
-              <span className="text-sm" style={{ color: "rgba(237,237,237,0.4)" }}>
+              <span className="text-xs" style={{ color: leftMuted }}>
                 por<br />mês
               </span>
             )}
           </div>
           {appliedCoupon && (
-            <p className="text-xs mb-1" style={{ color: primaryColor }}>
+            <p className="text-[11px] mb-0.5" style={{ color: accent }}>
               {appliedCoupon.discount_percent}% de desconto aplicado
             </p>
           )}
           {isRecurring && (
-            <p className="text-xs mb-6" style={{ color: "rgba(237,237,237,0.35)" }}>
+            <p className="text-[11px] mb-4" style={{ color: leftMuted }}>
               cobrado mensalmente
             </p>
           )}
 
           {/* Divider */}
-          <div className="border-t my-6" style={{ borderColor: "rgba(237,237,237,0.08)" }} />
+          <div className="border-t my-4" style={{ borderColor: leftDivider }} />
 
           {/* Order summary */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">{offerName}</p>
                 {isRecurring && (
-                  <p className="text-xs" style={{ color: "rgba(237,237,237,0.35)" }}>
+                  <p className="text-[11px]" style={{ color: leftMuted }}>
                     Cobrado mensalmente
                   </p>
                 )}
@@ -142,34 +181,34 @@ export function CheckoutPreview({
               <p className="text-sm font-medium">{price}</p>
             </div>
 
-            <div className="border-t my-3" style={{ borderColor: "rgba(237,237,237,0.08)" }} />
+            <div className="border-t my-2" style={{ borderColor: leftDivider }} />
 
             <div className="flex items-center justify-between">
-              <p className="text-sm" style={{ color: "rgba(237,237,237,0.55)" }}>Subtotal</p>
+              <p className="text-sm" style={{ color: leftSubtle }}>Subtotal</p>
               <p className="text-sm font-medium">{price}</p>
             </div>
 
             {/* Coupon section */}
             {appliedCoupon ? (
               <div
-                className="flex items-center justify-between py-2.5 px-3 rounded-lg"
-                style={{ backgroundColor: "rgba(237,237,237,0.05)", border: "1px solid rgba(237,237,237,0.08)" }}
+                className="flex items-center justify-between py-2 px-3 rounded-lg"
+                style={{ backgroundColor: `${leftText}08`, border: `1px solid ${leftDivider}` }}
               >
                 <div className="flex items-center gap-2">
-                  <Tag className="h-3.5 w-3.5" style={{ color: primaryColor }} />
-                  <code className="text-xs font-bold" style={{ color: primaryColor }}>
+                  <Tag className="h-3 w-3" style={{ color: accent }} />
+                  <code className="text-[11px] font-bold" style={{ color: accent }}>
                     {appliedCoupon.code}
                   </code>
-                  <span className="text-xs" style={{ color: "rgba(237,237,237,0.5)" }}>
+                  <span className="text-[11px]" style={{ color: leftMuted }}>
                     {appliedCoupon.discount_percent}% off
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <span className="text-sm font-medium" style={{ color: "#ef4444" }}>
                     -{formatPrice(discountCents)}
                   </span>
-                  <button onClick={removeCoupon} className="p-0.5 rounded hover:bg-white/10 transition-colors">
-                    <X className="h-3.5 w-3.5" style={{ color: "rgba(237,237,237,0.4)" }} />
+                  <button onClick={removeCoupon} className="p-0.5 rounded hover:opacity-70 transition-colors">
+                    <X className="h-3 w-3" style={{ color: leftMuted }} />
                   </button>
                 </div>
               </div>
@@ -177,46 +216,44 @@ export function CheckoutPreview({
               <div>
                 <div
                   className="flex items-center gap-2 rounded-lg overflow-hidden"
-                  style={{ border: "1px solid rgba(237,237,237,0.08)" }}
+                  style={{ border: `1px solid ${leftDivider}` }}
                 >
-                  <div className="flex items-center gap-2 flex-1 px-3 py-2.5" style={{ backgroundColor: "rgba(237,237,237,0.04)" }}>
-                    <Tag className="h-3.5 w-3.5" style={{ color: "rgba(237,237,237,0.3)" }} />
+                  <div className="flex items-center gap-2 flex-1 px-3 py-2" style={{ backgroundColor: `${leftText}06` }}>
+                    <Tag className="h-3 w-3" style={{ color: leftMuted }} />
                     <input
                       type="text"
                       placeholder="Código de cupom"
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                       onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
-                      className="bg-transparent text-xs text-white placeholder:text-white/25 outline-none flex-1 font-mono"
+                      className="bg-transparent text-xs placeholder:opacity-30 outline-none flex-1 font-mono"
+                      style={{ color: leftText }}
                     />
                   </div>
                   <button
                     onClick={handleApplyCoupon}
                     disabled={!couponInput.trim() || couponLoading || !onCouponValidate}
-                    className="px-4 py-2.5 text-xs font-semibold transition-colors disabled:opacity-30"
-                    style={{ color: primaryColor }}
+                    className="px-3 py-2 text-xs font-semibold transition-colors disabled:opacity-30"
+                    style={{ color: accent }}
                   >
-                    {couponLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Aplicar"}
+                    {couponLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Aplicar"}
                   </button>
                 </div>
                 {couponError && (
-                  <p className="text-xs mt-1.5" style={{ color: "#ef4444" }}>{couponError}</p>
+                  <p className="text-[11px] mt-1" style={{ color: "#ef4444" }}>{couponError}</p>
                 )}
               </div>
             )}
 
-            {/* Discount line */}
             {appliedCoupon && (
-              <>
-                <div className="border-t my-3" style={{ borderColor: "rgba(237,237,237,0.08)" }} />
-              </>
+              <div className="border-t my-2" style={{ borderColor: leftDivider }} />
             )}
 
-            <div className="border-t my-3" style={{ borderColor: "rgba(237,237,237,0.08)" }} />
+            <div className="border-t my-2" style={{ borderColor: leftDivider }} />
 
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">Total devido hoje</p>
-              <p className="text-sm font-bold" style={{ color: primaryColor }}>
+              <p className="text-sm font-bold" style={{ color: accent }}>
                 {formatPrice(totalCents)}
               </p>
             </div>
@@ -224,8 +261,8 @@ export function CheckoutPreview({
         </div>
 
         {/* Footer */}
-        <div className="mt-8 space-y-4">
-          <div className="flex items-center gap-4 text-[10px]" style={{ color: "rgba(237,237,237,0.25)" }}>
+        <div className="mt-6 space-y-3">
+          <div className="flex items-center gap-4 text-[10px]" style={{ color: leftMuted }}>
             <div className="flex items-center gap-1">
               <Lock className="h-3 w-3" /> Pagamento seguro
             </div>
@@ -233,30 +270,29 @@ export function CheckoutPreview({
               <Shield className="h-3 w-3" /> Dados protegidos
             </div>
           </div>
-          <div className="border-t pt-4" style={{ borderColor: "rgba(237,237,237,0.06)" }}>
-            <p className="text-[10px] font-medium" style={{ color: "rgba(237,237,237,0.2)" }}>
-              <span style={{ color: "rgba(237,237,237,0.35)" }}>
+          <div className="border-t pt-3" style={{ borderColor: leftDivider }}>
+            <p className="text-[10px] font-medium" style={{ color: leftMuted }}>
+              <span style={{ color: leftSubtle }}>
                 Bianchini{" "}
                 <span style={{ color: primaryColor, opacity: 0.6 }}>Pay</span>
               </span>
               {" "}© 2026 · Todos os direitos reservados
             </p>
-            <p className="text-[9px] mt-1" style={{ color: "rgba(237,237,237,0.15)" }}>
+            <p className="text-[9px] mt-0.5" style={{ color: `${leftText}20` }}>
               Plataforma segura de pagamentos · Termos de uso · Política de privacidade
             </p>
           </div>
         </div>
       </div>
 
-      {/* RIGHT — White/light side */}
-      <div className="w-1/2 p-10 flex flex-col" style={{ backgroundColor: "#f8f8f8" }}>
+      {/* RIGHT — Form side */}
+      <div className="w-1/2 p-8 flex flex-col" style={{ backgroundColor: rightBg }}>
         <div className="max-w-sm mx-auto w-full flex-1">
-          {/* Form */}
           <LeadCaptureForm
             primaryColor={primaryColor}
             btnTextColor="#ffffff"
-            textColor="#1a1a1a"
-            mutedColor="rgba(0,0,0,0.45)"
+            textColor={rightText}
+            mutedColor={rightMuted}
             ctaText={ctaText}
             billingType={billingType}
             onSubmit={onLeadSubmit}
@@ -265,15 +301,15 @@ export function CheckoutPreview({
           {/* Guarantee */}
           {showGuarantee && (
             <div
-              className="mt-6 flex items-center gap-3 p-3.5 rounded-xl"
-              style={{ backgroundColor: "rgba(0,0,0,0.03)", border: "1px solid rgba(0,0,0,0.06)" }}
+              className="mt-4 flex items-center gap-3 p-3 rounded-lg"
+              style={{ backgroundColor: `${rightText}06`, border: `1px solid ${rightText}10` }}
             >
-              <Shield className="h-5 w-5 shrink-0" style={{ color: primaryColor }} />
+              <Shield className="h-5 w-5 shrink-0" style={{ color: accent }} />
               <div>
-                <p className="text-xs font-semibold" style={{ color: "#1a1a1a" }}>
+                <p className="text-xs font-semibold" style={{ color: rightText }}>
                   {guaranteeText}
                 </p>
-                <p className="text-[10px] mt-0.5" style={{ color: "rgba(0,0,0,0.35)" }}>
+                <p className="text-[10px] mt-0.5" style={{ color: rightMuted }}>
                   Seu dinheiro de volta, sem perguntas.
                 </p>
               </div>
@@ -281,9 +317,9 @@ export function CheckoutPreview({
           )}
 
           {/* Footer */}
-          <div className="mt-6 flex items-center justify-center gap-1.5">
-            <Lock className="h-3 w-3" style={{ color: "rgba(0,0,0,0.2)" }} />
-            <span className="text-[10px]" style={{ color: "rgba(0,0,0,0.2)" }}>
+          <div className="mt-4 flex items-center justify-center gap-1.5">
+            <Lock className="h-3 w-3" style={{ color: rightMuted }} />
+            <span className="text-[10px]" style={{ color: rightMuted }}>
               Transação segura · Dados criptografados
             </span>
           </div>

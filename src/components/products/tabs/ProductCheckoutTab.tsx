@@ -9,11 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 import {
   Eye, Save, Globe, Copy, ExternalLink, GripVertical,
   Type, Image, Shield, List, MessageSquare, ChevronUp, ChevronDown,
-  EyeOff, Palette, CreditCard, Code
+  EyeOff, Palette, CreditCard, Code, Sparkles, LayoutGrid
 } from "lucide-react";
 import type { Product } from "@/hooks/useProducts";
 import { useOffersByProduct, type Offer } from "@/hooks/useOffers";
@@ -73,7 +74,7 @@ const defaultForm: FormState = {
   cta_text: "Comprar agora",
   primary_color: "#3366FF",
   bg_color: "#FFFFFF",
-  accent_color: "",
+  accent_color: "#0ACF83",
   image_url: "",
   logo_url: "",
   show_guarantee: false,
@@ -150,6 +151,17 @@ function BlockItem({
   );
 }
 
+const colorPresets = [
+  { primary: "#3366FF", bg: "#FFFFFF", accent: "#0ACF83", label: "Azul" },
+  { primary: "#10B981", bg: "#FFFFFF", accent: "#3366FF", label: "Verde" },
+  { primary: "#8B5CF6", bg: "#FFFFFF", accent: "#EC4899", label: "Roxo" },
+  { primary: "#F59E0B", bg: "#1A1A2E", accent: "#F59E0B", label: "Gold" },
+  { primary: "#EF4444", bg: "#FFFFFF", accent: "#F97316", label: "Vermelho" },
+  { primary: "#06B6D4", bg: "#0F172A", accent: "#22D3EE", label: "Cyan" },
+  { primary: "#EC4899", bg: "#FFFFFF", accent: "#A855F7", label: "Rosa" },
+  { primary: "#F97316", bg: "#FFFFFF", accent: "#EAB308", label: "Laranja" },
+];
+
 function OfferCheckoutEditor({ offer }: { offer: Offer }) {
   const { data: existingPage, isLoading: pageLoading } = useCheckoutPageByOffer(offer.id);
   const upsert = useUpsertCheckoutPage();
@@ -168,7 +180,7 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
         cta_text: existingPage.cta_text,
         primary_color: existingPage.primary_color,
         bg_color: existingPage.bg_color,
-        accent_color: existingPage.accent_color ?? "",
+        accent_color: existingPage.accent_color ?? "#0ACF83",
         image_url: existingPage.image_url ?? "",
         logo_url: existingPage.logo_url ?? "",
         show_guarantee: existingPage.show_guarantee,
@@ -216,7 +228,6 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
 
   const toggleBlock = (id: string) => {
     setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, enabled: !b.enabled } : b)));
-    // Sync guarantee
     if (id === "guarantee") {
       update("show_guarantee", !blocks.find((b) => b.id === "guarantee")?.enabled);
     }
@@ -288,7 +299,7 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
           {/* Editor tabs */}
           <div className="flex rounded-lg border bg-muted/30 p-1 gap-1">
             {[
-              { id: "blocks" as const, label: "Blocos", icon: List },
+              { id: "blocks" as const, label: "Blocos", icon: LayoutGrid },
               { id: "design" as const, label: "Design", icon: Palette },
               { id: "tracking" as const, label: "Tracking", icon: Code },
             ].map((tab) => (
@@ -409,8 +420,15 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
 
           {editorTab === "design" && (
             <div className="space-y-4">
+              {/* Colors section */}
               <Card>
-                <CardContent className="space-y-4 pt-4">
+                <CardHeader className="pb-2 pt-4 px-4">
+                  <CardTitle className="text-xs flex items-center gap-2">
+                    <Palette className="h-3.5 w-3.5 text-primary" />
+                    Cores
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 px-4 pb-4">
                   <div className="space-y-2">
                     <Label className="text-xs">Cor principal</Label>
                     <div className="flex gap-2">
@@ -420,6 +438,7 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs">Cor de fundo</Label>
+                    <p className="text-[10px] text-muted-foreground -mt-1">Afeta o fundo do resumo do pedido</p>
                     <div className="flex gap-2">
                       <input type="color" value={form.bg_color} onChange={(e) => update("bg_color", e.target.value)} className="h-9 w-12 rounded-lg border cursor-pointer bg-transparent" />
                       <Input value={form.bg_color} onChange={(e) => update("bg_color", e.target.value)} className="font-mono text-sm" />
@@ -427,29 +446,38 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs">Cor de destaque</Label>
+                    <p className="text-[10px] text-muted-foreground -mt-1">Usado no total, cupons e selos</p>
                     <div className="flex gap-2">
                       <input type="color" value={form.accent_color || "#0ACF83"} onChange={(e) => update("accent_color", e.target.value)} className="h-9 w-12 rounded-lg border cursor-pointer bg-transparent" />
                       <Input value={form.accent_color} onChange={(e) => update("accent_color", e.target.value)} placeholder="#0ACF83" className="font-mono text-sm" />
                     </div>
                   </div>
+                </CardContent>
+              </Card>
 
-                  {/* Quick presets */}
-                  <div className="space-y-2">
-                    <Label className="text-xs">Presets</Label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {[
-                        { primary: "#3366FF", bg: "#FFFFFF", label: "Azul" },
-                        { primary: "#10B981", bg: "#FFFFFF", label: "Verde" },
-                        { primary: "#8B5CF6", bg: "#FFFFFF", label: "Roxo" },
-                        { primary: "#F59E0B", bg: "#1A1A2E", label: "Gold" },
-                      ].map((preset) => (
+              {/* Presets section */}
+              <Card>
+                <CardHeader className="pb-2 pt-4 px-4">
+                  <CardTitle className="text-xs flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    Presets de cores
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <div className="grid grid-cols-4 gap-2">
+                    {colorPresets.map((preset) => {
+                      const isActive = form.primary_color === preset.primary && form.bg_color === preset.bg;
+                      return (
                         <button
                           key={preset.label}
                           onClick={() => {
                             update("primary_color", preset.primary);
                             update("bg_color", preset.bg);
+                            update("accent_color", preset.accent);
                           }}
-                          className="flex flex-col items-center gap-1.5 p-2 rounded-lg border hover:border-primary/50 transition-colors"
+                          className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border transition-colors ${
+                            isActive ? "border-primary bg-primary/5" : "hover:border-primary/30"
+                          }`}
                         >
                           <div className="flex gap-0.5">
                             <div className="h-4 w-4 rounded-full" style={{ backgroundColor: preset.primary }} />
@@ -457,8 +485,8 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
                           </div>
                           <span className="text-[10px] text-muted-foreground">{preset.label}</span>
                         </button>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
