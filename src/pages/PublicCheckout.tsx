@@ -177,10 +177,10 @@ export default function PublicCheckout() {
         if (result.payment.status === "approved") {
           toast.success("Pagamento aprovado! 🎉");
           track("payment_approved");
-        } else if (result.payment.init_point) {
-          window.location.href = result.payment.init_point;
-        } else {
+        } else if (result.payment.qr_code || result.payment.barcode) {
           toast.success("Pagamento criado! Siga as instruções.");
+        } else {
+          toast.success("Pagamento em processamento...");
         }
       } else {
         // Gateway not configured — use simulation mode
