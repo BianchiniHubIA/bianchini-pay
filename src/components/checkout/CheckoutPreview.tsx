@@ -67,6 +67,7 @@ export function CheckoutPreview({
     textColor,
     mutedColor,
     ctaText,
+    billingType,
     onSubmit: onLeadSubmit,
   };
 
