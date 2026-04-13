@@ -186,30 +186,33 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
 
           <Separator />
 
-          {editorTab === "tracking" && (
-            <Card>
-              <CardContent className="space-y-4 pt-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Facebook Pixel ID</Label>
-                  <Input value={form.fb_pixel_id} onChange={(e) => update("fb_pixel_id", e.target.value)} placeholder="123456789012345" className="font-mono text-sm" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Google Analytics (GA4)</Label>
-                  <Input value={form.ga_tracking_id} onChange={(e) => update("ga_tracking_id", e.target.value)} placeholder="G-XXXXXXXXXX" className="font-mono text-sm" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Google Tag Manager</Label>
-                  <Input value={form.gtm_id} onChange={(e) => update("gtm_id", e.target.value)} placeholder="GTM-XXXXXXX" className="font-mono text-sm" />
-                </div>
-                <Separator />
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Scripts personalizados</Label>
-                  <Textarea value={form.custom_scripts} onChange={(e) => update("custom_scripts", e.target.value)} placeholder="<script>...</script>" rows={4} className="font-mono text-xs" />
-                  <p className="text-[10px] text-muted-foreground">Inserido no &lt;head&gt;</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-xs flex items-center gap-2">
+                <Code className="h-3.5 w-3.5 text-primary" /> Tracking
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 px-4 pb-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Facebook Pixel ID</Label>
+                <Input value={form.fb_pixel_id} onChange={(e) => update("fb_pixel_id", e.target.value)} placeholder="123456789012345" className="font-mono text-sm" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Google Analytics (GA4)</Label>
+                <Input value={form.ga_tracking_id} onChange={(e) => update("ga_tracking_id", e.target.value)} placeholder="G-XXXXXXXXXX" className="font-mono text-sm" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Google Tag Manager</Label>
+                <Input value={form.gtm_id} onChange={(e) => update("gtm_id", e.target.value)} placeholder="GTM-XXXXXXX" className="font-mono text-sm" />
+              </div>
+              <Separator />
+              <div className="space-y-1.5">
+                <Label className="text-xs">Scripts personalizados</Label>
+                <Textarea value={form.custom_scripts} onChange={(e) => update("custom_scripts", e.target.value)} placeholder="<script>...</script>" rows={4} className="font-mono text-xs" />
+                <p className="text-[10px] text-muted-foreground">Inserido no &lt;head&gt;</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right: Preview */}
