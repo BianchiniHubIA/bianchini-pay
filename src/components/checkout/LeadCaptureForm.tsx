@@ -7,6 +7,7 @@ interface LeadCaptureFormProps {
   textColor: string;
   mutedColor: string;
   ctaText: string;
+  billingType?: string;
   onSubmit?: (data: LeadFormData) => void;
 }
 
@@ -24,14 +25,17 @@ export function LeadCaptureForm({
   textColor,
   mutedColor,
   ctaText,
+  billingType,
   onSubmit,
 }: LeadCaptureFormProps) {
+  const isRecurring = billingType === "recurring";
+
   const [form, setForm] = useState<LeadFormData>({
     name: "",
     email: "",
     whatsapp: "",
     document: "",
-    paymentMethod: "pix",
+    paymentMethod: isRecurring ? "credit_card" : "pix",
   });
 
   const handleChange = (field: keyof LeadFormData, value: string) => {
@@ -49,11 +53,15 @@ export function LeadCaptureForm({
     color: textColor,
   };
 
-  const paymentMethods = [
+  const allPaymentMethods = [
     { id: "pix", label: "Pix", icon: "⚡" },
     { id: "credit_card", label: "Cartão de Crédito", icon: "💳" },
     { id: "boleto", label: "Boleto", icon: "📄" },
   ];
+
+  const paymentMethods = isRecurring
+    ? allPaymentMethods.filter((m) => m.id === "credit_card")
+    : allPaymentMethods;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
