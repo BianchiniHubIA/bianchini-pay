@@ -165,15 +165,30 @@ export function ProductFormDialog({ open, onClose, onSubmit, product }: Props) {
                     </FormItem>
                   )} />
                 </div>
-                <FormField control={form.control} name="price_cents" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Preço (R$)</FormLabel>
-                    <FormControl>
-                      <PriceInput value={field.value} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="price_cents" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço (R$)</FormLabel>
+                      <FormControl>
+                        <PriceInput value={field.value} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="billing_type" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cobrança</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="one_time">Vitalício</SelectItem>
+                          <SelectItem value="recurring">Assinatura</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
                   {isEditing ? (
