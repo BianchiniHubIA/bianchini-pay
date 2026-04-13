@@ -25,6 +25,13 @@ interface PaymentRequest {
   coupon_code?: string;
 }
 
+const INTERVAL_MAP: Record<string, { frequency: number; frequency_type: string }> = {
+  monthly: { frequency: 1, frequency_type: "months" },
+  quarterly: { frequency: 3, frequency_type: "months" },
+  semiannual: { frequency: 6, frequency_type: "months" },
+  annual: { frequency: 12, frequency_type: "months" },
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -100,6 +107,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Upsert customer
     const { data: customer } = await supabase
       .from("customers")
       .upsert(
@@ -117,53 +125,140 @@ Deno.serve(async (req) => {
 
     const productName = (offer as any).products?.name || offer.name;
     const finalAmountCents = body.amount_cents || offer.price_cents;
+    const isRecurring = offer.billing_type === "recurring";
 
-    // All payments (one-time and recurring) are processed as direct payments
-    // For recurring, we create the first payment and store subscription info
-    const paymentResult = await createPayment({
-      accessToken,
-      amountCents: finalAmountCents,
-      customer: body.customer,
-      productName,
-      paymentMethod: body.payment_method,
-      cardToken: body.card_token,
-      installments: body.installments,
-    });
+    if (isRecurring && body.payment_method === "credit_card") {
+      // ===== RECURRING: Use MP Preapproval (auto_recurring with card_token) =====
+      if (!body.card_token) {
+        return new Response(
+          JSON.stringify({ error: "Token do cartão é obrigatório para assinaturas" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
-    // Determine order status
-    const orderStatus = paymentResult.status === "approved" ? "paid" : "pending";
+      const interval = INTERVAL_MAP[offer.billing_interval || "monthly"] || INTERVAL_MAP.monthly;
 
-    const { data: order } = await supabase
-      .from("orders")
-      .insert({
-        organization_id: checkoutPage.organization_id,
-        customer_id: customer?.id || null,
-        offer_id: body.offer_id,
-        amount_cents: finalAmountCents,
-        payment_method: body.payment_method,
-        status: orderStatus,
-        external_id: paymentResult.id?.toString() || null,
-      })
-      .select()
-      .single();
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        payment: {
-          id: paymentResult.id,
-          status: paymentResult.status,
-          status_detail: paymentResult.status_detail || null,
-          qr_code: paymentResult.point_of_interaction?.transaction_data?.qr_code || null,
-          qr_code_base64: paymentResult.point_of_interaction?.transaction_data?.qr_code_base64 || null,
-          ticket_url: paymentResult.point_of_interaction?.transaction_data?.ticket_url || null,
-          barcode: paymentResult.barcode?.content || null,
-          boleto_url: paymentResult.transaction_details?.external_resource_url || null,
+      const preapprovalBody: any = {
+        reason: productName,
+        external_reference: `${body.checkout_page_id}|${body.offer_id}`,
+        payer_email: body.customer.email,
+        card_token_id: body.card_token,
+        auto_recurring: {
+          frequency: interval.frequency,
+          frequency_type: interval.frequency_type,
+          transaction_amount: finalAmountCents / 100,
+          currency_id: "BRL",
         },
-        order_id: order?.id || null,
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+        back_url: `${req.headers.get("origin") || "https://bianchinipay.lovable.app"}`,
+        status: "authorized",
+      };
+
+      // Add trial if configured
+      if (offer.trial_days && offer.trial_days > 0) {
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() + offer.trial_days);
+        preapprovalBody.auto_recurring.start_date = startDate.toISOString();
+        preapprovalBody.auto_recurring.free_trial = {
+          frequency: offer.trial_days,
+          frequency_type: "days",
+        };
+      }
+
+      console.log("Creating preapproval:", JSON.stringify(preapprovalBody));
+
+      const preapprovalRes = await fetch(`${MP_API}/preapproval`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(preapprovalBody),
+      });
+
+      const preapprovalData = await preapprovalRes.json();
+
+      if (!preapprovalRes.ok) {
+        console.error("MP Preapproval Error:", JSON.stringify(preapprovalData));
+        throw new Error(preapprovalData.message || `Erro no Mercado Pago [${preapprovalRes.status}]`);
+      }
+
+      // Create order for the subscription
+      const subStatus = preapprovalData.status === "authorized" ? "paid" : "pending";
+
+      const { data: order } = await supabase
+        .from("orders")
+        .insert({
+          organization_id: checkoutPage.organization_id,
+          customer_id: customer?.id || null,
+          offer_id: body.offer_id,
+          amount_cents: finalAmountCents,
+          payment_method: "credit_card",
+          status: subStatus,
+          external_id: preapprovalData.id?.toString() || null,
+        })
+        .select()
+        .single();
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          type: "subscription",
+          payment: {
+            id: preapprovalData.id,
+            status: preapprovalData.status === "authorized" ? "approved" : preapprovalData.status,
+            status_detail: preapprovalData.status,
+          },
+          order_id: order?.id || null,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } else {
+      // ===== ONE-TIME: Direct payment =====
+      const paymentResult = await createPayment({
+        accessToken,
+        amountCents: finalAmountCents,
+        customer: body.customer,
+        productName,
+        paymentMethod: body.payment_method,
+        cardToken: body.card_token,
+        installments: body.installments,
+      });
+
+      const orderStatus = paymentResult.status === "approved" ? "paid" : "pending";
+
+      const { data: order } = await supabase
+        .from("orders")
+        .insert({
+          organization_id: checkoutPage.organization_id,
+          customer_id: customer?.id || null,
+          offer_id: body.offer_id,
+          amount_cents: finalAmountCents,
+          payment_method: body.payment_method,
+          status: orderStatus,
+          external_id: paymentResult.id?.toString() || null,
+        })
+        .select()
+        .single();
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          type: "one_time",
+          payment: {
+            id: paymentResult.id,
+            status: paymentResult.status,
+            status_detail: paymentResult.status_detail || null,
+            qr_code: paymentResult.point_of_interaction?.transaction_data?.qr_code || null,
+            qr_code_base64: paymentResult.point_of_interaction?.transaction_data?.qr_code_base64 || null,
+            ticket_url: paymentResult.point_of_interaction?.transaction_data?.ticket_url || null,
+            barcode: paymentResult.barcode?.content || null,
+            boleto_url: paymentResult.transaction_details?.external_resource_url || null,
+          },
+          order_id: order?.id || null,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
   } catch (error: unknown) {
     console.error("Payment error:", error);
     const message = error instanceof Error ? error.message : "Erro interno";
