@@ -69,7 +69,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <div className={`flex items-center px-2 py-4 ${collapsed ? "justify-center" : "gap-2"}`}>
             <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0">
-              <img src={logo} alt="Bianchini Pay" className="h-full w-full object-contain" />
+              <img src={logo} alt="Bianchini Go" className="h-full w-full object-contain" />
             </div>
             {!collapsed && (
               <span className="text-lg font-heading font-bold text-sidebar-accent-foreground">

@@ -381,7 +381,7 @@ const SectionFinalCTA = () => {
           negócio online.
         </h2>
         <p className="text-zinc-400 text-xl md:text-2xl mb-12 leading-relaxed font-body max-w-2xl">
-          Crie a sua conta na Bianchini Pay e simplifique sua gestão de recebimentos com taxas competitivas e aprovação máxima.
+          Crie a sua conta na Bianchini Go e simplifique sua gestão de recebimentos com taxas competitivas e aprovação máxima.
         </p>
         <MagneticButton>
           <Link to="/auth">
@@ -415,7 +415,7 @@ const Index = () => {
               BP
             </div>
             <span className="font-heading font-semibold text-sm tracking-widest uppercase text-zinc-100">
-              Bianchini Pay
+              Bianchini Go
             </span>
           </motion.div>
           
@@ -443,7 +443,7 @@ const Index = () => {
       {/* ─── FOOTER ─── */}
       <footer className="border-t border-white/5 py-12 text-center text-zinc-600 bg-[#050505]">
         <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6 text-xs font-mono uppercase tracking-widest">
-          <p>© {new Date().getFullYear()} Bianchini Pay Inc.</p>
+          <p>© {new Date().getFullYear()} Bianchini Go Inc.</p>
           <div className="flex gap-8">
             <a href="#" className="hover:text-zinc-300 transition-colors">Privacidade</a>
             <a href="#" className="hover:text-zinc-300 transition-colors">Termos</a>

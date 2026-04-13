@@ -104,7 +104,7 @@ export function CheckoutPreview({
           <div>
             <div className="mb-6">
               <span className="text-base font-bold tracking-tight">
-                Bianchini <span style={{ color: primaryColor }}>Pay</span>
+                Bianchini <span style={{ color: primaryColor }}>Go</span>
               </span>
             </div>
 
@@ -178,7 +178,7 @@ export function CheckoutPreview({
             </div>
             <div className="border-t pt-3" style={{ borderColor: leftDivider }}>
               <p className="text-[10px] font-medium" style={{ color: leftMuted }}>
-                <span style={{ color: leftSubtle }}>Bianchini <span style={{ color: primaryColor, opacity: 0.6 }}>Pay</span></span>
+                <span style={{ color: leftSubtle }}>Bianchini <span style={{ color: primaryColor, opacity: 0.6 }}>Go</span></span>
                 {" "}© 2026 · Todos os direitos reservados
               </p>
               <p className="text-[9px] mt-0.5" style={{ color: `${leftText}20` }}>Plataforma segura · Termos de uso · Privacidade</p>
