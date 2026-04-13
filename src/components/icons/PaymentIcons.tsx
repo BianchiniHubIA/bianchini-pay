@@ -1,10 +1,11 @@
 import React from "react";
 
-export function PixIcon({ className }: { className?: string }) {
+export function PixIcon({ className, color }: { className?: string; color?: string }) {
   return (
-    <svg className={className} viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M382.56 350.07a64.07 64.07 0 0 1-45.54-18.87l-73.18-73.18a16.07 16.07 0 0 0-22.68 0l-73.54 73.54a64.07 64.07 0 0 1-45.54 18.87h-14.52l92.34 92.34a74.78 74.78 0 0 0 105.74 0l92.78-92.78h-16.86ZM122.08 161.93a64.07 64.07 0 0 1 45.54 18.87l73.54 73.54a16.38 16.38 0 0 0 22.68 0l73.18-73.18a64.07 64.07 0 0 1 45.54-18.87h16.86l-92.78-92.78a74.78 74.78 0 0 0-105.74 0l-92.34 92.34h13.52Z" fill="#32BCAD"/>
-      <path d="M473.44 207.74 419.3 153.6h-36.74a48.07 48.07 0 0 0-33.98 14.06l-73.18 73.18a32.41 32.41 0 0 1-45.72 0l-73.54-73.54a48.07 48.07 0 0 0-33.98-14.06H85.7L32.56 207.38a74.78 74.78 0 0 0 0 105.74L85.7 366.26h36.46a48.07 48.07 0 0 0 33.98-14.06l73.54-73.54a33.17 33.17 0 0 1 45.72 0l73.18 73.18a48.07 48.07 0 0 0 33.98 14.06h36.74l54.14-54.14a74.78 74.78 0 0 0 0-105.74" fill="#32BCAD"/>
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15.45 16.52l-2.76-2.76a.97.97 0 0 0-1.38 0l-2.76 2.76a2.4 2.4 0 0 1-1.7.7H5.5l3.47 3.47a2.8 2.8 0 0 0 3.96 0l3.47-3.47h-1.25a2.4 2.4 0 0 1-1.7-.7z" fill={color || "#32BCAD"}/>
+      <path d="M8.55 7.48l2.76 2.76a.97.97 0 0 0 1.38 0l2.76-2.76a2.4 2.4 0 0 1 1.7-.7h1.25L14.93 3.3a2.8 2.8 0 0 0-3.96 0L7.5 6.78h.35a2.4 2.4 0 0 1 1.7.7z" fill={color || "#32BCAD"}/>
+      <path d="M20.17 10.03l-2.03-2.03h-1.38a1.6 1.6 0 0 0-1.13.47l-2.76 2.76a1.94 1.94 0 0 1-2.74 0L7.37 8.47a1.6 1.6 0 0 0-1.13-.47H4.87l-2.04 2.03a2.8 2.8 0 0 0 0 3.96l2.04 2.03h1.37a1.6 1.6 0 0 0 1.13-.47l2.76-2.76a1.98 1.98 0 0 1 2.74 0l2.76 2.76a1.6 1.6 0 0 0 1.13.47h1.38l2.03-2.03a2.8 2.8 0 0 0 0-3.96z" fill={color || "#32BCAD"}/>
     </svg>
   );
 }
@@ -12,7 +13,13 @@ export function PixIcon({ className }: { className?: string }) {
 export function BoletoIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M2 4h2v16H2V4Zm4 0h1v16H6V4Zm2.5 0h2v16h-2V4ZM13 4h1v16h-1V4Zm2.5 0h2v16h-2V4ZM20 4h2v16h-2V4Zm-1.5 0h1v16h-1V4Z" fill="currentColor" opacity="0.7"/>
+      <rect x="3" y="4" width="2.5" height="16" rx="0.5" fill="currentColor"/>
+      <rect x="6.5" y="4" width="1.5" height="16" rx="0.25" fill="currentColor"/>
+      <rect x="9" y="4" width="2.5" height="16" rx="0.5" fill="currentColor"/>
+      <rect x="12.5" y="4" width="1" height="16" rx="0.25" fill="currentColor"/>
+      <rect x="14.5" y="4" width="2" height="16" rx="0.5" fill="currentColor"/>
+      <rect x="17.5" y="4" width="1" height="16" rx="0.25" fill="currentColor"/>
+      <rect x="19.5" y="4" width="2" height="16" rx="0.5" fill="currentColor"/>
     </svg>
   );
 }
@@ -20,10 +27,9 @@ export function BoletoIcon({ className }: { className?: string }) {
 export function CreditCardIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="4" width="20" height="16" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M2 9.5h20" stroke="currentColor" strokeWidth="1.5"/>
-      <rect x="5" y="14" width="4" height="2" rx="0.75" fill="currentColor" opacity="0.5"/>
-      <rect x="11" y="14" width="2.5" height="2" rx="0.75" fill="currentColor" opacity="0.3"/>
+      <rect x="1.5" y="4.5" width="21" height="15" rx="2.5" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="1.5" y="8.5" width="21" height="2.5" fill="currentColor" opacity="0.15"/>
+      <rect x="4.5" y="14.5" width="5" height="1.5" rx="0.75" fill="currentColor" opacity="0.4"/>
     </svg>
   );
 }
