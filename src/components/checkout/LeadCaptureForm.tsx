@@ -47,12 +47,6 @@ export function LeadCaptureForm({
     onSubmit?.(form);
   };
 
-  const inputStyle: React.CSSProperties = {
-    backgroundColor: textColor === "#ffffff" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)",
-    borderColor: textColor === "#ffffff" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)",
-    color: textColor,
-  };
-
   const allPaymentMethods = [
     { id: "pix", label: "Pix", icon: "⚡" },
     { id: "credit_card", label: "Cartão de Crédito", icon: "💳" },
@@ -63,103 +57,151 @@ export function LeadCaptureForm({
     ? allPaymentMethods.filter((m) => m.id === "credit_card")
     : allPaymentMethods;
 
+  const inputClasses =
+    "w-full px-4 py-3 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition-all bg-white text-gray-900 placeholder:text-gray-400";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <p className="text-sm font-semibold mb-2" style={{ color: textColor }}>
-        Preencha seus dados
-      </p>
-
-      {/* Nome */}
-      <div className="relative">
-        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: mutedColor }} />
-        <input
-          type="text"
-          placeholder="Seu nome completo"
-          required
-          value={form.name}
-          onChange={(e) => handleChange("name", e.target.value)}
-          className="w-full pl-10 pr-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-2 transition-all"
-          style={{ ...inputStyle, "--tw-ring-color": primaryColor } as React.CSSProperties}
-        />
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Header */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-1">Pagar com cartão</h2>
       </div>
 
-      {/* Email */}
-      <div className="relative">
-        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: mutedColor }} />
-        <input
-          type="email"
-          placeholder="seu@email.com"
-          required
-          value={form.email}
-          onChange={(e) => handleChange("email", e.target.value)}
-          className="w-full pl-10 pr-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-2 transition-all"
-          style={{ ...inputStyle, "--tw-ring-color": primaryColor } as React.CSSProperties}
-        />
-      </div>
-
-      {/* WhatsApp */}
-      <div className="relative">
-        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: mutedColor }} />
-        <input
-          type="tel"
-          placeholder="(00) 00000-0000"
-          required
-          value={form.whatsapp}
-          onChange={(e) => handleChange("whatsapp", e.target.value)}
-          className="w-full pl-10 pr-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-2 transition-all"
-          style={{ ...inputStyle, "--tw-ring-color": primaryColor } as React.CSSProperties}
-        />
-      </div>
-
-      {/* CPF */}
-      <div className="relative">
-        <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: mutedColor }} />
-        <input
-          type="text"
-          placeholder="CPF (000.000.000-00)"
-          required
-          value={form.document}
-          onChange={(e) => handleChange("document", e.target.value)}
-          className="w-full pl-10 pr-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-2 transition-all"
-          style={{ ...inputStyle, "--tw-ring-color": primaryColor } as React.CSSProperties}
-        />
+      {/* E-mail */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">E-mail</label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="email"
+            placeholder="seu@email.com"
+            required
+            value={form.email}
+            onChange={(e) => handleChange("email", e.target.value)}
+            className={`${inputClasses} pl-10`}
+            style={{ "--tw-ring-color": primaryColor } as React.CSSProperties}
+          />
+        </div>
       </div>
 
       {/* Forma de Pagamento */}
-      <div>
-        <p className="text-xs font-medium mb-2" style={{ color: mutedColor }}>
-          <CreditCard className="inline h-3.5 w-3.5 mr-1" />
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
           Forma de pagamento
-        </p>
-        <div className="flex gap-2">
-          {paymentMethods.map((m) => (
+        </label>
+        <div className="rounded-lg border border-gray-200 overflow-hidden">
+          {paymentMethods.map((m, i) => (
             <button
               key={m.id}
               type="button"
               onClick={() => handleChange("paymentMethod", m.id)}
-              className="flex-1 py-2 px-2 rounded-lg text-xs font-medium border transition-all"
+              className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors ${
+                form.paymentMethod === m.id
+                  ? "bg-blue-50 border-l-2"
+                  : "bg-white hover:bg-gray-50"
+              } ${i > 0 ? "border-t border-gray-100" : ""}`}
               style={{
-                backgroundColor: form.paymentMethod === m.id ? primaryColor : "transparent",
-                color: form.paymentMethod === m.id ? btnTextColor : textColor,
-                borderColor: form.paymentMethod === m.id ? primaryColor : (textColor === "#ffffff" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)"),
+                borderLeftColor: form.paymentMethod === m.id ? primaryColor : "transparent",
               }}
             >
-              {m.icon} {m.label}
+              <span className="text-base">{m.icon}</span>
+              <span className={`font-medium ${form.paymentMethod === m.id ? "text-gray-900" : "text-gray-600"}`}>
+                {m.label}
+              </span>
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Card fields (when credit card selected) */}
+      {form.paymentMethod === "credit_card" && (
+        <div className="space-y-3 p-4 rounded-lg border border-gray-200 bg-gray-50/50">
+          <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Dados do cartão</label>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="1234 1234 1234 1234"
+              className={inputClasses}
+              readOnly
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <div className="h-5 w-7 rounded bg-blue-600 flex items-center justify-center">
+                <span className="text-[7px] font-bold text-white">VISA</span>
+              </div>
+              <div className="h-5 w-7 rounded bg-red-500 flex items-center justify-center">
+                <span className="text-[7px] font-bold text-white">MC</span>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <input type="text" placeholder="MM / AA" className={inputClasses} readOnly />
+            <input type="text" placeholder="CVC" className={inputClasses} readOnly />
+          </div>
+        </div>
+      )}
+
+      {/* Name */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Nome completo</label>
+        <div className="relative">
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Seu nome completo"
+            required
+            value={form.name}
+            onChange={(e) => handleChange("name", e.target.value)}
+            className={`${inputClasses} pl-10`}
+            style={{ "--tw-ring-color": primaryColor } as React.CSSProperties}
+          />
+        </div>
+      </div>
+
+      {/* CPF */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">CPF</label>
+        <div className="relative">
+          <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="000.000.000-00"
+            required
+            value={form.document}
+            onChange={(e) => handleChange("document", e.target.value)}
+            className={`${inputClasses} pl-10`}
+            style={{ "--tw-ring-color": primaryColor } as React.CSSProperties}
+          />
+        </div>
+      </div>
+
+      {/* WhatsApp */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Telefone <span className="text-gray-300 normal-case">(Opcional)</span>
+        </label>
+        <div className="relative">
+          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="tel"
+            placeholder="(00) 00000-0000"
+            value={form.whatsapp}
+            onChange={(e) => handleChange("whatsapp", e.target.value)}
+            className={`${inputClasses} pl-10`}
+            style={{ "--tw-ring-color": primaryColor } as React.CSSProperties}
+          />
         </div>
       </div>
 
       {/* Submit */}
       <button
         type="submit"
-        className="w-full py-3.5 rounded-xl font-bold text-sm transition-transform hover:scale-[1.02]"
+        className="w-full py-3.5 rounded-lg font-semibold text-sm transition-all hover:opacity-90 shadow-lg"
         style={{ backgroundColor: primaryColor, color: btnTextColor }}
       >
         {ctaText}
       </button>
 
-      <p className="text-[9px] text-center" style={{ color: mutedColor }}>
+      <p className="text-[10px] text-center text-gray-300">
         🔒 Seus dados estão seguros e protegidos
       </p>
     </form>
