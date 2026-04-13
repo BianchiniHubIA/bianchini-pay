@@ -26,6 +26,7 @@ export default function PublicCheckout() {
   const { track } = useTrackEvent(page?.id);
   const [processing, setProcessing] = useState(false);
   const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_percent: number } | null>(null);
 
   const { data: offer } = useQuery({
     queryKey: ["public-offer", page?.offer_id],
@@ -84,10 +85,38 @@ export default function PublicCheckout() {
     return () => { scripts.forEach((s) => s.remove()); };
   }, [page]);
 
+  const handleCouponValidate = useCallback(async (code: string): Promise<{ valid: boolean; discount_percent: number } | null> => {
+    if (!page || !offer) return null;
+
+    const { data: coupons } = await supabase
+      .from("coupons")
+      .select("id, code, discount_percent, product_id")
+      .eq("code", code)
+      .eq("is_active", true);
+
+    if (!coupons?.length) return { valid: false, discount_percent: 0 };
+
+    // Find a coupon that applies to this product or all products
+    const coupon = coupons.find(
+      (c) => !c.product_id || c.product_id === offer.product_id
+    );
+
+    if (!coupon) return { valid: false, discount_percent: 0 };
+
+    setAppliedCoupon({ code: coupon.code, discount_percent: Number(coupon.discount_percent) });
+    return { valid: true, discount_percent: Number(coupon.discount_percent) };
+  }, [page, offer]);
+
   const handleLeadSubmit = useCallback(async (data: LeadFormData) => {
     if (!page || !offer) return;
 
     const params = new URLSearchParams(window.location.search);
+
+    // Calculate final price with coupon
+    const discountCents = appliedCoupon
+      ? Math.round((offer.price_cents ?? 0) * appliedCoupon.discount_percent / 100)
+      : 0;
+    const finalPriceCents = (offer.price_cents ?? 0) - discountCents;
 
     // 1. Save lead
     await supabase.from("leads").insert({
@@ -107,6 +136,7 @@ export default function PublicCheckout() {
       referrer: document.referrer || null,
       ip_address: null,
       user_agent: navigator.userAgent,
+      metadata: appliedCoupon ? { coupon_code: appliedCoupon.code, coupon_discount: appliedCoupon.discount_percent } : null,
     });
 
     track("lead_captured");
@@ -127,6 +157,8 @@ export default function PublicCheckout() {
             offer_id: page.offer_id,
             checkout_page_id: page.id,
             payment_method: data.paymentMethod,
+            amount_cents: finalPriceCents,
+            coupon_code: appliedCoupon?.code ?? null,
             customer: {
               name: data.name.trim(),
               email: data.email.trim().toLowerCase(),
@@ -150,7 +182,6 @@ export default function PublicCheckout() {
         toast.success("Pagamento aprovado! 🎉");
         track("payment_approved");
       } else if (result.payment.init_point) {
-        // Subscription - redirect to MP
         window.location.href = result.payment.init_point;
       } else {
         toast.success("Pagamento criado! Siga as instruções.");
@@ -160,21 +191,21 @@ export default function PublicCheckout() {
     } finally {
       setProcessing(false);
     }
-  }, [page, offer, track]);
+  }, [page, offer, track, appliedCoupon]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#1a1a1a" }}>
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#e9bf1e" }} />
       </div>
     );
   }
 
   if (!page || error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
+      <div className="min-h-screen flex flex-col items-center justify-center" style={{ backgroundColor: "#1a1a1a", color: "#ededed" }}>
         <h1 className="text-2xl font-bold mb-2">Página não encontrada</h1>
-        <p className="text-muted-foreground">Este checkout não existe ou não está publicado.</p>
+        <p style={{ color: "rgba(237,237,237,0.5)" }}>Este checkout não existe ou não está publicado.</p>
       </div>
     );
   }
@@ -182,40 +213,44 @@ export default function PublicCheckout() {
   // Show payment result screen
   if (paymentResult) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-6">
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: "#1a1a1a" }}>
         <div className="max-w-md w-full space-y-6 text-center">
           {paymentResult.status === "approved" ? (
             <>
-              <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
-              <h1 className="text-2xl font-bold text-gray-900">Pagamento Aprovado!</h1>
-              <p className="text-gray-600">Seu pagamento foi processado com sucesso.</p>
+              <CheckCircle2 className="h-16 w-16 mx-auto" style={{ color: "#22c55e" }} />
+              <h1 className="text-2xl font-bold" style={{ color: "#ededed" }}>Pagamento Aprovado!</h1>
+              <p style={{ color: "rgba(237,237,237,0.6)" }}>Seu pagamento foi processado com sucesso.</p>
             </>
           ) : paymentResult.qr_code ? (
             <>
-              <QrCode className="h-12 w-12 text-blue-500 mx-auto" />
-              <h1 className="text-2xl font-bold text-gray-900">Pague com Pix</h1>
-              <p className="text-gray-600 text-sm">Escaneie o QR code ou copie o código abaixo</p>
+              <QrCode className="h-12 w-12 mx-auto" style={{ color: "#3b82f6" }} />
+              <h1 className="text-2xl font-bold" style={{ color: "#ededed" }}>Pague com Pix</h1>
+              <p className="text-sm" style={{ color: "rgba(237,237,237,0.6)" }}>
+                Escaneie o QR code ou copie o código abaixo
+              </p>
               {paymentResult.qr_code_base64 && (
                 <img
                   src={`data:image/png;base64,${paymentResult.qr_code_base64}`}
                   alt="QR Code Pix"
-                  className="mx-auto w-48 h-48"
+                  className="mx-auto w-48 h-48 rounded-xl"
                 />
               )}
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-2">Código Pix (copia e cola):</p>
+              <div className="rounded-lg p-3" style={{ backgroundColor: "rgba(237,237,237,0.05)", border: "1px solid rgba(237,237,237,0.1)" }}>
+                <p className="text-xs mb-2" style={{ color: "rgba(237,237,237,0.4)" }}>Código Pix (copia e cola):</p>
                 <div className="flex items-center gap-2">
                   <input
                     readOnly
                     value={paymentResult.qr_code}
-                    className="flex-1 text-xs bg-white border rounded px-2 py-1.5 text-gray-700"
+                    className="flex-1 text-xs rounded px-2 py-1.5 font-mono"
+                    style={{ backgroundColor: "rgba(237,237,237,0.08)", border: "1px solid rgba(237,237,237,0.1)", color: "#ededed" }}
                   />
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(paymentResult.qr_code!);
                       toast.success("Código copiado!");
                     }}
-                    className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    className="p-2 rounded hover:opacity-80 transition-opacity"
+                    style={{ backgroundColor: "#3b82f6", color: "#ffffff" }}
                   >
                     <Copy className="h-4 w-4" />
                   </button>
@@ -224,28 +259,29 @@ export default function PublicCheckout() {
             </>
           ) : paymentResult.boleto_url ? (
             <>
-              <h1 className="text-2xl font-bold text-gray-900">Boleto Gerado</h1>
-              <p className="text-gray-600 text-sm">Clique abaixo para visualizar seu boleto</p>
+              <h1 className="text-2xl font-bold" style={{ color: "#ededed" }}>Boleto Gerado</h1>
+              <p className="text-sm" style={{ color: "rgba(237,237,237,0.6)" }}>Clique abaixo para visualizar seu boleto</p>
               {paymentResult.barcode && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-1">Código de barras:</p>
-                  <p className="text-xs font-mono text-gray-700 break-all">{paymentResult.barcode}</p>
+                <div className="rounded-lg p-3" style={{ backgroundColor: "rgba(237,237,237,0.05)", border: "1px solid rgba(237,237,237,0.1)" }}>
+                  <p className="text-xs mb-1" style={{ color: "rgba(237,237,237,0.4)" }}>Código de barras:</p>
+                  <p className="text-xs font-mono break-all" style={{ color: "rgba(237,237,237,0.7)" }}>{paymentResult.barcode}</p>
                 </div>
               )}
               <a
                 href={paymentResult.boleto_url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-block px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600"
+                className="inline-block px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                style={{ backgroundColor: "#3b82f6", color: "#ffffff" }}
               >
                 Ver Boleto
               </a>
             </>
           ) : (
             <>
-              <Loader2 className="h-12 w-12 text-blue-500 mx-auto animate-spin" />
-              <h1 className="text-2xl font-bold text-gray-900">Processando...</h1>
-              <p className="text-gray-600 text-sm">Seu pagamento está sendo processado.</p>
+              <Loader2 className="h-12 w-12 mx-auto animate-spin" style={{ color: "#3b82f6" }} />
+              <h1 className="text-2xl font-bold" style={{ color: "#ededed" }}>Processando...</h1>
+              <p className="text-sm" style={{ color: "rgba(237,237,237,0.6)" }}>Seu pagamento está sendo processado.</p>
             </>
           )}
         </div>
@@ -256,10 +292,10 @@ export default function PublicCheckout() {
   // Show processing overlay
   if (processing) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#1a1a1a" }}>
         <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto" />
-          <p className="text-gray-600 font-medium">Processando pagamento...</p>
+          <Loader2 className="h-12 w-12 animate-spin mx-auto" style={{ color: page.primary_color }} />
+          <p className="font-medium" style={{ color: "rgba(237,237,237,0.7)" }}>Processando pagamento...</p>
         </div>
       </div>
     );
@@ -284,6 +320,8 @@ export default function PublicCheckout() {
         priceCents={offer?.price_cents ?? 0}
         billingType={offer?.billing_type ?? "one_time"}
         onLeadSubmit={handleLeadSubmit}
+        onCouponValidate={handleCouponValidate}
+        appliedCoupon={appliedCoupon}
       />
     </div>
   );
