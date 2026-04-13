@@ -13,6 +13,24 @@ import type { Product } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
 import { WhatsAppIcon, GmailIcon, MembersIcon, ExternalLinkIcon } from "@/components/icons/AccessTypeIcons";
 
+function PriceInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [text, setText] = useState(value ? (value / 100).toFixed(2) : "");
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      placeholder="97.00"
+      value={text}
+      onChange={(e) => {
+        const val = e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".");
+        setText(val);
+        const parsed = parseFloat(val);
+        onChange(!isNaN(parsed) ? Math.round(parsed * 100) : 0);
+      }}
+    />
+  );
+}
+
 const productSchema = z.object({
   name: z.string().min(1, "Nome obrigatório"),
   description: z.string().optional(),
@@ -144,35 +162,15 @@ export function ProductFormDialog({ open, onClose, onSubmit, product }: Props) {
                     </FormItem>
                   )} />
                 </div>
-                <FormField control={form.control} name="price_cents" render={({ field }) => {
-                  const [priceText, setPriceText] = useState(
-                    field.value ? (field.value / 100).toFixed(2) : ""
-                  );
-                  return (
-                    <FormItem>
-                      <FormLabel>Preço (R$)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          placeholder="97.00"
-                          value={priceText}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".");
-                            setPriceText(val);
-                            const parsed = parseFloat(val);
-                            if (!isNaN(parsed)) {
-                              field.onChange(Math.round(parsed * 100));
-                            } else {
-                              field.onChange(0);
-                            }
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }} />
+                <FormField control={form.control} name="price_cents" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Preço (R$)</FormLabel>
+                    <FormControl>
+                      <PriceInput value={field.value} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
                 <div className="flex justify-end gap-2 pt-2">
                   <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
                   {isEditing ? (
