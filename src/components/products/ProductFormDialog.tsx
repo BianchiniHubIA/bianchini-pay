@@ -13,6 +13,24 @@ import type { Product } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
 import { WhatsAppIcon, GmailIcon, MembersIcon, ExternalLinkIcon } from "@/components/icons/AccessTypeIcons";
 
+function PriceInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [text, setText] = useState(value ? (value / 100).toFixed(2) : "");
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      placeholder="97.00"
+      value={text}
+      onChange={(e) => {
+        const val = e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".");
+        setText(val);
+        const parsed = parseFloat(val);
+        onChange(!isNaN(parsed) ? Math.round(parsed * 100) : 0);
+      }}
+    />
+  );
+}
+
 const productSchema = z.object({
   name: z.string().min(1, "Nome obrigatório"),
   description: z.string().optional(),
