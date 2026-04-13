@@ -4,10 +4,16 @@ import { CheckoutPreview } from "@/components/checkout/CheckoutPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, CheckCircle2, Copy, QrCode } from "lucide-react";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { useTrackEvent } from "@/hooks/useTrackEvent";
 import type { LeadFormData } from "@/components/checkout/LeadCaptureForm";
 import { toast } from "sonner";
+
+declare global {
+  interface Window {
+    MercadoPago: any;
+  }
+}
 
 interface PaymentResult {
   id: string;
@@ -17,7 +23,6 @@ interface PaymentResult {
   ticket_url?: string;
   barcode?: string;
   boleto_url?: string;
-  init_point?: string;
 }
 
 export default function PublicCheckout() {
@@ -27,6 +32,7 @@ export default function PublicCheckout() {
   const [processing, setProcessing] = useState(false);
   const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_percent: number } | null>(null);
+  const mpInstanceRef = useRef<any>(null);
 
   const { data: offer } = useQuery({
     queryKey: ["public-offer", page?.offer_id],
@@ -41,6 +47,44 @@ export default function PublicCheckout() {
     },
     enabled: !!page?.offer_id,
   });
+
+  // Fetch MP public key from payment_gateways
+  const { data: mpPublicKey } = useQuery({
+    queryKey: ["mp-public-key", page?.organization_id],
+    queryFn: async () => {
+      if (!page?.organization_id) return null;
+      const { data } = await supabase
+        .from("payment_gateways")
+        .select("credentials")
+        .eq("organization_id", page.organization_id)
+        .eq("provider", "mercado_pago")
+        .eq("is_active", true)
+        .limit(1)
+        .single();
+      if (!data) return null;
+      return (data.credentials as Record<string, string>)?.public_key || null;
+    },
+    enabled: !!page?.organization_id,
+  });
+
+  // Load MP SDK
+  useEffect(() => {
+    if (!mpPublicKey) return;
+    if (document.getElementById("mp-sdk-script")) {
+      // SDK already loaded
+      if (window.MercadoPago && !mpInstanceRef.current) {
+        mpInstanceRef.current = new window.MercadoPago(mpPublicKey);
+      }
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = "mp-sdk-script";
+    script.src = "https://sdk.mercadopago.com/js/v2";
+    script.onload = () => {
+      mpInstanceRef.current = new window.MercadoPago(mpPublicKey);
+    };
+    document.head.appendChild(script);
+  }, [mpPublicKey]);
 
   // Inject tracking scripts
   useEffect(() => {
@@ -96,7 +140,6 @@ export default function PublicCheckout() {
 
     if (!coupons?.length) return { valid: false, discount_percent: 0 };
 
-    // Find a coupon that applies to this product or all products
     const coupon = coupons.find(
       (c) => !c.product_id || c.product_id === offer.product_id
     );
@@ -107,12 +150,40 @@ export default function PublicCheckout() {
     return { valid: true, discount_percent: Number(coupon.discount_percent) };
   }, [page, offer]);
 
+  const tokenizeCard = async (data: LeadFormData): Promise<string> => {
+    const mp = mpInstanceRef.current;
+    if (!mp) throw new Error("SDK do Mercado Pago não carregado");
+
+    const cardNumber = (data.cardNumber || "").replace(/\D/g, "");
+    const expiry = (data.cardExpiry || "").replace(/\D/g, "");
+    const expirationMonth = parseInt(expiry.slice(0, 2), 10);
+    const expirationYear = parseInt("20" + expiry.slice(2, 4), 10);
+    const securityCode = (data.cardCvc || "").trim();
+    const cardholderName = (data.cardHolder || data.name).trim();
+    const docNumber = (data.document || "").replace(/\D/g, "");
+
+    const cardTokenResponse = await mp.createCardToken({
+      cardNumber,
+      cardholderName,
+      cardExpirationMonth: String(expirationMonth).padStart(2, "0"),
+      cardExpirationYear: String(expirationYear),
+      securityCode,
+      identificationType: "CPF",
+      identificationNumber: docNumber,
+    });
+
+    if (!cardTokenResponse?.id) {
+      throw new Error("Não foi possível tokenizar o cartão. Verifique os dados.");
+    }
+
+    return cardTokenResponse.id;
+  };
+
   const handleLeadSubmit = useCallback(async (data: LeadFormData) => {
     if (!page || !offer) return;
 
     const params = new URLSearchParams(window.location.search);
 
-    // Calculate final price with coupon
     const discountCents = appliedCoupon
       ? Math.round((offer.price_cents ?? 0) * appliedCoupon.discount_percent / 100)
       : 0;
@@ -141,9 +212,21 @@ export default function PublicCheckout() {
 
     track("lead_captured");
 
-    // 2. Try to process payment via edge function
+    // 2. Process payment
     setProcessing(true);
     try {
+      // Tokenize card if credit_card
+      let cardToken: string | undefined;
+      if (data.paymentMethod === "credit_card") {
+        try {
+          cardToken = await tokenizeCard(data);
+        } catch (tokenError: any) {
+          toast.error(tokenError.message || "Erro ao processar dados do cartão");
+          setProcessing(false);
+          return;
+        }
+      }
+
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/process-payment`,
@@ -159,6 +242,8 @@ export default function PublicCheckout() {
             payment_method: data.paymentMethod,
             amount_cents: finalPriceCents,
             coupon_code: appliedCoupon?.code ?? null,
+            card_token: cardToken,
+            installments: 1,
             customer: {
               name: data.name.trim(),
               email: data.email.trim().toLowerCase(),
@@ -183,47 +268,17 @@ export default function PublicCheckout() {
           toast.success("Pagamento em processamento...");
         }
       } else {
-        // Gateway not configured — use simulation mode
-        console.warn("Gateway não configurado, usando modo simulação");
-        simulatePayment(data.paymentMethod, finalPriceCents);
+        const errorData = await response.json().catch(() => null);
+        const errorMsg = errorData?.error || "Erro ao processar pagamento";
+        toast.error(errorMsg);
       }
-    } catch {
-      // Network error or function not deployed — use simulation mode
-      console.warn("Erro de rede, usando modo simulação");
-      simulatePayment(data.paymentMethod, finalPriceCents);
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      toast.error("Erro de conexão. Tente novamente.");
     } finally {
       setProcessing(false);
     }
   }, [page, offer, track, appliedCoupon]);
-
-  const simulatePayment = (method: string, amountCents: number) => {
-    const fakeId = `SIM-${Date.now()}`;
-
-    if (method === "pix") {
-      const pixCode = `00020126580014br.gov.bcb.pix0136${crypto.randomUUID()}5204000053039865404${(amountCents / 100).toFixed(2)}5802BR6014BianchiniPay62070503***6304`;
-      setPaymentResult({
-        id: fakeId,
-        status: "pending",
-        qr_code: pixCode,
-        qr_code_base64: undefined,
-      });
-      toast.success("Pix gerado! Copie o código para pagar.");
-    } else if (method === "boleto") {
-      setPaymentResult({
-        id: fakeId,
-        status: "pending",
-        barcode: "23793.38128 60000.000003 00000.000402 1 " + (amountCents * 100).toString().padStart(10, "0"),
-        boleto_url: "#boleto-simulado",
-      });
-      toast.success("Boleto gerado!");
-    } else if (method === "credit_card") {
-      setPaymentResult({
-        id: fakeId,
-        status: "approved",
-      });
-      toast.success("Pagamento aprovado! 🎉");
-    }
-  };
 
   if (isLoading) {
     return (
@@ -242,7 +297,6 @@ export default function PublicCheckout() {
     );
   }
 
-  // Show payment result screen
   if (paymentResult) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: "#1a1a1a" }}>
@@ -321,7 +375,6 @@ export default function PublicCheckout() {
     );
   }
 
-  // Show processing overlay
   if (processing) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#1a1a1a" }}>
