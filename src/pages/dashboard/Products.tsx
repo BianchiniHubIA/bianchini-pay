@@ -35,7 +35,7 @@ export default function Products() {
   const [formOpen, setFormOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const handleCreateProduct = async (data: { name: string; description?: string; type: "digital" | "physical" | "service"; status: "active" | "inactive" | "draft"; price_cents: number; access_type: string }) => {
+  const handleCreateProduct = async (data: { name: string; description?: string; type: "digital" | "physical" | "service"; status: "active" | "inactive" | "draft"; price_cents: number; billing_type: "one_time" | "recurring"; access_type: string }) => {
     try {
       const product = await createProduct.mutateAsync({
         name: data.name,
@@ -48,7 +48,7 @@ export default function Products() {
       await createOffer.mutateAsync({
         name: "Oferta Principal",
         price_cents: data.price_cents,
-        billing_type: "one_time",
+        billing_type: data.billing_type,
         product_id: product.id,
       });
       toast.success("Produto criado!");

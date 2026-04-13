@@ -37,6 +37,7 @@ const productSchema = z.object({
   type: z.enum(["digital", "physical", "service"]),
   status: z.enum(["active", "inactive", "draft"]),
   price_cents: z.number().min(1, "Preço obrigatório"),
+  billing_type: z.enum(["one_time", "recurring"]).default("one_time"),
   access_type: z.string().default("link"),
 });
 
@@ -69,6 +70,7 @@ export function ProductFormDialog({ open, onClose, onSubmit, product }: Props) {
       type: (product?.type as any) ?? "digital",
       status: (product?.status as any) ?? "draft",
       price_cents: 0,
+      billing_type: "one_time" as const,
       access_type: product?.access_type ?? "link",
     },
   });
@@ -82,6 +84,7 @@ export function ProductFormDialog({ open, onClose, onSubmit, product }: Props) {
         type: (product?.type as any) ?? "digital",
         status: (product?.status as any) ?? "draft",
         price_cents: 0,
+        billing_type: "one_time" as const,
         access_type: product?.access_type ?? "link",
       });
     }
@@ -162,15 +165,30 @@ export function ProductFormDialog({ open, onClose, onSubmit, product }: Props) {
                     </FormItem>
                   )} />
                 </div>
-                <FormField control={form.control} name="price_cents" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Preço (R$)</FormLabel>
-                    <FormControl>
-                      <PriceInput value={field.value} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="price_cents" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço (R$)</FormLabel>
+                      <FormControl>
+                        <PriceInput value={field.value} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="billing_type" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cobrança</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="one_time">Vitalício</SelectItem>
+                          <SelectItem value="recurring">Assinatura</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
                   {isEditing ? (
