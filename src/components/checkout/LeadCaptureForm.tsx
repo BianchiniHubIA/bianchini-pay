@@ -49,9 +49,9 @@ export function LeadCaptureForm({
   };
 
   const allPaymentMethods = [
-    { id: "pix", label: "Pix", icon: "⚡" },
-    { id: "credit_card", label: "Cartão de Crédito", icon: "💳" },
-    { id: "boleto", label: "Boleto", icon: "📄" },
+    { id: "pix", label: "Pix", icon: <PixIcon className="h-5 w-5" /> },
+    { id: "credit_card", label: "Cartão de Crédito", icon: <CreditCardIcon className="h-5 w-5 text-blue-400" /> },
+    { id: "boleto", label: "Boleto", icon: <BoletoIcon className="h-5 w-5 text-gray-500" /> },
   ];
 
   const paymentMethods = isRecurring
