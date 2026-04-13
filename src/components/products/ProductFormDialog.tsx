@@ -37,6 +37,7 @@ const productSchema = z.object({
   type: z.enum(["digital", "physical", "service"]),
   status: z.enum(["active", "inactive", "draft"]),
   price_cents: z.number().min(1, "Preço obrigatório"),
+  billing_type: z.enum(["one_time", "recurring"]).default("one_time"),
   access_type: z.string().default("link"),
 });
 
@@ -69,6 +70,7 @@ export function ProductFormDialog({ open, onClose, onSubmit, product }: Props) {
       type: (product?.type as any) ?? "digital",
       status: (product?.status as any) ?? "draft",
       price_cents: 0,
+      billing_type: "one_time" as const,
       access_type: product?.access_type ?? "link",
     },
   });
@@ -82,6 +84,7 @@ export function ProductFormDialog({ open, onClose, onSubmit, product }: Props) {
         type: (product?.type as any) ?? "digital",
         status: (product?.status as any) ?? "draft",
         price_cents: 0,
+        billing_type: "one_time" as const,
         access_type: product?.access_type ?? "link",
       });
     }
