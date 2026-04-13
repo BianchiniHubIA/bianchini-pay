@@ -251,6 +251,7 @@ export function CheckoutPreview({
             textColor={txt}
             mutedColor={muted}
             ctaText={ctaText}
+            billingType={billingType}
             onSubmit={onLeadSubmit}
           />
         </div>
