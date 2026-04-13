@@ -346,11 +346,12 @@ export default function PublicCheckout() {
         accentColor={page.accent_color ?? ""}
         imageUrl={page.image_url ?? ""}
         logoUrl={page.logo_url ?? ""}
-        showGuarantee={page.show_guarantee}
+        showGuarantee={page.show_guarantee ?? false}
         guaranteeText={page.guarantee_text ?? ""}
         offerName={offer?.name ?? "Oferta"}
         priceCents={offer?.price_cents ?? 0}
         billingType={offer?.billing_type ?? "one_time"}
+        blocksLayout={(page as any).blocks_layout ?? undefined}
         onLeadSubmit={handleLeadSubmit}
         onCouponValidate={handleCouponValidate}
         appliedCoupon={appliedCoupon}

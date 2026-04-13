@@ -72,6 +72,7 @@ export type Database = {
         Row: {
           accent_color: string | null
           bg_color: string
+          blocks_layout: Json | null
           created_at: string
           cta_text: string
           custom_scripts: string | null
@@ -97,6 +98,7 @@ export type Database = {
         Insert: {
           accent_color?: string | null
           bg_color?: string
+          blocks_layout?: Json | null
           created_at?: string
           cta_text?: string
           custom_scripts?: string | null
@@ -122,6 +124,7 @@ export type Database = {
         Update: {
           accent_color?: string | null
           bg_color?: string
+          blocks_layout?: Json | null
           created_at?: string
           cta_text?: string
           custom_scripts?: string | null
