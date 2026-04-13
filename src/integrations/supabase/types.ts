@@ -59,6 +59,13 @@ export type Database = {
             referencedRelation: "checkout_pages"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "checkout_events_checkout_page_id_fkey"
+            columns: ["checkout_page_id"]
+            isOneToOne: false
+            referencedRelation: "public_checkout_pages"
+            referencedColumns: ["id"]
+          },
         ]
       }
       checkout_pages: {
@@ -340,6 +347,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "leads_checkout_page_id_fkey"
+            columns: ["checkout_page_id"]
+            isOneToOne: false
+            referencedRelation: "public_checkout_pages"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "leads_offer_id_fkey"
             columns: ["offer_id"]
             isOneToOne: false
@@ -481,6 +495,13 @@ export type Database = {
             columns: ["checkout_page_id"]
             isOneToOne: false
             referencedRelation: "checkout_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_bumps_checkout_page_id_fkey"
+            columns: ["checkout_page_id"]
+            isOneToOne: false
+            referencedRelation: "public_checkout_pages"
             referencedColumns: ["id"]
           },
           {
@@ -854,7 +875,81 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_checkout_pages: {
+        Row: {
+          accent_color: string | null
+          bg_color: string | null
+          cta_text: string | null
+          description: string | null
+          guarantee_text: string | null
+          headline: string | null
+          id: string | null
+          image_url: string | null
+          is_published: boolean | null
+          logo_url: string | null
+          offer_id: string | null
+          organization_id: string | null
+          primary_color: string | null
+          show_guarantee: boolean | null
+          slug: string | null
+          subheadline: string | null
+          template: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          bg_color?: string | null
+          cta_text?: string | null
+          description?: string | null
+          guarantee_text?: string | null
+          headline?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_published?: boolean | null
+          logo_url?: string | null
+          offer_id?: string | null
+          organization_id?: string | null
+          primary_color?: string | null
+          show_guarantee?: boolean | null
+          slug?: string | null
+          subheadline?: string | null
+          template?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          bg_color?: string | null
+          cta_text?: string | null
+          description?: string | null
+          guarantee_text?: string | null
+          headline?: string | null
+          id?: string | null
+          image_url?: string | null
+          is_published?: boolean | null
+          logo_url?: string | null
+          offer_id?: string | null
+          organization_id?: string | null
+          primary_color?: string | null
+          show_guarantee?: boolean | null
+          slug?: string | null
+          subheadline?: string | null
+          template?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_pages_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkout_pages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       get_user_org_ids: { Args: { _user_id: string }; Returns: string[] }
