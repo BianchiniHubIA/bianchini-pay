@@ -164,6 +164,7 @@ export function CheckoutPreview({
                 textColor="#1a1a1a"
                 mutedColor="#6B7280"
                 ctaText={ctaText}
+                billingType={billingType}
                 onSubmit={onLeadSubmit}
               />
               <div className="flex items-center justify-center gap-3 pt-1">
