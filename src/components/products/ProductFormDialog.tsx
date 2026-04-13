@@ -144,22 +144,35 @@ export function ProductFormDialog({ open, onClose, onSubmit, product }: Props) {
                     </FormItem>
                   )} />
                 </div>
-                <FormField control={form.control} name="price_cents" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Preço (R$)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="97.00"
-                        value={field.value ? (field.value / 100).toFixed(2) : ""}
-                        onChange={(e) => field.onChange(Math.round(parseFloat(e.target.value || "0") * 100))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                <FormField control={form.control} name="price_cents" render={({ field }) => {
+                  const [priceText, setPriceText] = useState(
+                    field.value ? (field.value / 100).toFixed(2) : ""
+                  );
+                  return (
+                    <FormItem>
+                      <FormLabel>Preço (R$)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="97.00"
+                          value={priceText}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".");
+                            setPriceText(val);
+                            const parsed = parseFloat(val);
+                            if (!isNaN(parsed)) {
+                              field.onChange(Math.round(parsed * 100));
+                            } else {
+                              field.onChange(0);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }} />
                 <div className="flex justify-end gap-2 pt-2">
                   <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
                   {isEditing ? (
