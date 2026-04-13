@@ -260,8 +260,9 @@ export default function PublicCheckout() {
         setPaymentResult(result.payment);
 
         if (result.payment.status === "approved") {
-          toast.success("Pagamento aprovado! 🎉");
-          track("payment_approved");
+          const isSubscription = result.type === "subscription";
+          toast.success(isSubscription ? "Assinatura ativada! 🎉" : "Pagamento aprovado! 🎉");
+          track(isSubscription ? "subscription_activated" : "payment_approved");
         } else if (result.payment.qr_code || result.payment.barcode) {
           toast.success("Pagamento criado! Siga as instruções.");
         } else {
