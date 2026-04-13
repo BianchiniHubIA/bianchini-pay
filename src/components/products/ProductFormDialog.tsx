@@ -149,12 +149,27 @@ export function ProductFormDialog({ open, onClose, onSubmit, product }: Props) {
                     <FormLabel>Preço (R$)</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
+                        type="text"
+                        inputMode="decimal"
                         placeholder="97.00"
                         value={field.value ? (field.value / 100).toFixed(2) : ""}
-                        onChange={(e) => field.onChange(Math.round(parseFloat(e.target.value || "0") * 100))}
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".");
+                          if (raw === "" || raw === ".") {
+                            field.onChange(0);
+                            return;
+                          }
+                          // Allow partial input like "97." while typing
+                          if (raw.endsWith(".")) return;
+                          const parsed = parseFloat(raw);
+                          if (!isNaN(parsed)) {
+                            field.onChange(Math.round(parsed * 100));
+                          }
+                        }}
+                        onBlur={() => {
+                          // Ensure clean value on blur
+                          if (field.value === 0) field.onChange(0);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
