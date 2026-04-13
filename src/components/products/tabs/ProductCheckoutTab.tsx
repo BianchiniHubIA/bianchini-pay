@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   Eye, Save, Copy, ExternalLink,
-  EyeOff, Palette, Code, Sparkles
+  EyeOff, Code
 } from "lucide-react";
 import type { Product } from "@/hooks/useProducts";
 import { useOffersByProduct, type Offer } from "@/hooks/useOffers";
