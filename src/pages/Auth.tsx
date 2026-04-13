@@ -44,7 +44,7 @@ export default function Auth() {
           <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
             <Zap className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-2xl font-heading font-bold text-foreground">Bianchini Pay</span>
+          <span className="text-2xl font-heading font-bold text-foreground">Bianchini Go</span>
         </div>
 
         <Card>
