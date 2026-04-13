@@ -15,7 +15,7 @@ import Orders from "@/pages/dashboard/Orders";
 import Customers from "@/pages/dashboard/Customers";
 import Analytics from "@/pages/dashboard/Analytics";
 import SettingsPage from "@/pages/dashboard/SettingsPage";
-import CheckoutPage from "@/pages/dashboard/CheckoutPage";
+
 import CheckoutAnalytics from "@/pages/dashboard/CheckoutAnalytics";
 import PublicCheckout from "@/pages/PublicCheckout";
 import TeamPage from "@/pages/dashboard/TeamPage";
@@ -46,7 +46,7 @@ const App = () => (
               <Route path="orders" element={<Orders />} />
               <Route path="customers" element={<Customers />} />
               <Route path="leads" element={<LeadsPage />} />
-              <Route path="checkout" element={<CheckoutPage />} />
+              
               <Route path="checkout-analytics" element={<CheckoutAnalytics />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="financeiro" element={<FinanceiroPage />} />

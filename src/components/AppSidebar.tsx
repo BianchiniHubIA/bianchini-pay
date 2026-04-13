@@ -5,7 +5,7 @@ import {
   ShoppingBag,
   UsersRound,
   UserPlus,
-  PanelTop,
+  
   MousePointerClick,
   BarChart3,
   HandCoins,
@@ -39,7 +39,7 @@ const mainNav = [
   { title: "Minhas Vendas", url: "/dashboard/orders", icon: ShoppingBag },
   { title: "Clientes", url: "/dashboard/customers", icon: UsersRound },
   { title: "Leads", url: "/dashboard/leads", icon: UserPlus },
-  { title: "Checkout", url: "/dashboard/checkout", icon: PanelTop },
+  
   { title: "Checkout Analytics", url: "/dashboard/checkout-analytics", icon: MousePointerClick },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
   { title: "Financeiro", url: "/dashboard/financeiro", icon: HandCoins },
