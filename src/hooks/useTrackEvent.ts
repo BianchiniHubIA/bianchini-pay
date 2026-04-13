@@ -23,7 +23,7 @@ function getUtmParams() {
 export function useTrackEvent(checkoutPageId: string | undefined) {
   const tracked = useRef(false);
 
-  const track = async (eventType: "page_view" | "cta_click" | "purchase" | "lead_captured") => {
+  const track = async (eventType: "page_view" | "cta_click" | "purchase" | "lead_captured" | "payment_initiated" | "payment_approved") => {
     if (!checkoutPageId) return;
     const utms = getUtmParams();
     try {
