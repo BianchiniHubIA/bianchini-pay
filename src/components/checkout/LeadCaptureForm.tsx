@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { useState, type ReactNode, useMemo } from "react";
 import { User, Mail, Phone, FileText, Lock, CreditCard } from "lucide-react";
-import { PixIcon, CreditCardIcon, BoletoIcon } from "@/components/icons/PaymentIcons";
+import { PixIcon, BoletoIcon } from "@/components/icons/PaymentIcons";
 
 interface LeadCaptureFormProps {
   primaryColor: string;
@@ -30,6 +30,50 @@ interface PaymentMethod {
   icon: ReactNode;
 }
 
+type CardBrand = "visa" | "mastercard" | "elo" | "amex" | "unknown";
+
+function detectCardBrand(number: string): CardBrand {
+  const digits = number.replace(/\D/g, "");
+  if (!digits) return "unknown";
+  if (/^4/.test(digits)) return "visa";
+  if (/^(5[1-5]|2[2-7])/.test(digits)) return "mastercard";
+  if (/^3[47]/.test(digits)) return "amex";
+  if (/^(636368|438935|504175|451416|636297|5067|4576|4011|506699)/.test(digits)) return "elo";
+  return "unknown";
+}
+
+function VisaIcon({ className, muted }: { className?: string; muted?: boolean }) {
+  return (
+    <svg className={className} viewBox="0 0 780 500" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: muted ? 0.25 : 1 }}>
+      <rect width="780" height="500" rx="40" fill="#1A1F71"/>
+      <path d="M293.2 348.7l33.4-195.8h53.4l-33.4 195.8H293.2zM541.7 157.1c-10.6-4-27.2-8.3-47.9-8.3-52.8 0-90 26.5-90.3 64.5-.3 28.1 26.5 43.7 46.8 53.1 20.8 9.6 27.8 15.7 27.7 24.3-.1 13.1-16.6 19.1-32 19.1-21.4 0-32.7-3-50.3-10.2l-6.9-3.1-7.5 43.8c12.5 5.5 35.6 10.2 59.6 10.5 56.2 0 92.6-26.2 93-66.7.2-22.2-14-39.1-44.8-53.1-18.7-9-30.1-15-30-24.2 0-8.1 9.7-16.8 30.6-16.8 17.5-.3 30.1 3.5 40 7.5l4.8 2.3 7.2-42.7zM646.5 152.9h-41.3c-12.8 0-22.4 3.5-28 16.2l-79.4 179.6h56.2s9.2-24.1 11.2-29.4h68.7c1.6 6.9 6.5 29.4 6.5 29.4h49.7l-43.6-195.8zm-66 126.5c4.4-11.3 21.5-54.7 21.5-54.7-.3.5 4.4-11.4 7.1-18.8l3.6 17s10.3 47.2 12.5 57.2h-44.8v-.7zM231.4 152.9L179 285l-5.6-27.1c-9.7-31.2-39.9-65-73.7-81.9l47.9 171.5h56.6l84.2-195.6h-57z" fill="#fff"/>
+      <path d="M146.9 152.9H59.6l-.7 3.8c67.2 16.2 111.7 55.4 130.1 102.5l-18.8-90.1c-3.2-12.4-12.8-15.7-23.3-16.2z" fill="#F9A533"/>
+    </svg>
+  );
+}
+
+function MastercardIcon({ className, muted }: { className?: string; muted?: boolean }) {
+  return (
+    <svg className={className} viewBox="0 0 780 500" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: muted ? 0.25 : 1 }}>
+      <circle cx="312" cy="250" r="148" fill="#EB001B"/>
+      <circle cx="468" cy="250" r="148" fill="#F79E1B"/>
+      <path d="M390 130.7c37.4 29.5 61.4 75.3 61.4 126.3s-24 96.8-61.4 126.3c-37.4-29.5-61.4-75.3-61.4-126.3s24-96.8 61.4-126.3z" fill="#FF5F00"/>
+    </svg>
+  );
+}
+
+function CardBrandIcons({ brand }: { brand: CardBrand }) {
+  if (brand === "visa") return <VisaIcon className="h-5 w-8" />;
+  if (brand === "mastercard") return <MastercardIcon className="h-5 w-8" />;
+  // Default: show both muted
+  return (
+    <div className="flex items-center gap-1">
+      <VisaIcon className="h-5 w-8" muted={brand !== "unknown"} />
+      <MastercardIcon className="h-5 w-8" muted={brand !== "unknown"} />
+    </div>
+  );
+}
+
 export function LeadCaptureForm({
   primaryColor,
   btnTextColor,
@@ -53,6 +97,8 @@ export function LeadCaptureForm({
     cardHolder: "",
   });
 
+  const cardBrand = useMemo(() => detectCardBrand(form.cardNumber || ""), [form.cardNumber]);
+
   const handleChange = (field: keyof LeadFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -70,12 +116,14 @@ export function LeadCaptureForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit?.(form);
+    if (onSubmit) {
+      onSubmit(form);
+    }
   };
 
   const allPaymentMethods: PaymentMethod[] = [
     { id: "pix", label: "Pix", icon: <PixIcon className="h-[18px] w-[18px]" /> },
-    { id: "credit_card", label: "Cartão de Crédito", icon: <CreditCardIcon className="h-[18px] w-[18px] opacity-70" /> },
+    { id: "credit_card", label: "Cartão de Crédito", icon: <CreditCard className="h-[18px] w-[18px] opacity-70" /> },
     { id: "boleto", label: "Boleto", icon: <BoletoIcon className="h-[18px] w-[18px] opacity-60" /> },
   ];
 
@@ -89,7 +137,7 @@ export function LeadCaptureForm({
   const inputStyle = (hasIcon?: boolean): React.CSSProperties => ({
     paddingLeft: hasIcon ? "2.5rem" : undefined,
     borderColor: "rgba(0,0,0,0.10)",
-    color: textColor,
+    color: "#1a1a1a",
     boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
   });
 
@@ -147,7 +195,7 @@ export function LeadCaptureForm({
                   backgroundColor: isActive ? `${primaryColor}0A` : "#fff",
                   borderLeft: isActive ? `3px solid ${primaryColor}` : "3px solid transparent",
                   borderTop: i > 0 ? "1px solid rgba(0,0,0,0.05)" : "none",
-                  color: isActive ? textColor : "rgba(0,0,0,0.5)",
+                  color: isActive ? "#1a1a1a" : "rgba(0,0,0,0.5)",
                   fontWeight: isActive ? 600 : 400,
                 }}
               >
@@ -171,10 +219,11 @@ export function LeadCaptureForm({
           <label className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: mutedColor }}>
             Dados do cartão
           </label>
-          {/* Card number */}
+          {/* Card number with auto-detected brand */}
           <div className="relative">
             <input
               type="text"
+              inputMode="numeric"
               placeholder="1234 1234 1234 1234"
               value={form.cardNumber}
               onChange={(e) => handleChange("cardNumber", formatCardNumber(e.target.value))}
@@ -186,20 +235,8 @@ export function LeadCaptureForm({
                 "--tw-ring-color": primaryColor,
               } as React.CSSProperties}
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-              {/* Visa logo */}
-              <svg className="h-5 w-8" viewBox="0 0 780 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="780" height="500" rx="40" fill="#1A1F71"/>
-                <path d="M293.2 348.7l33.4-195.8h53.4l-33.4 195.8H293.2zM541.7 157.1c-10.6-4-27.2-8.3-47.9-8.3-52.8 0-90 26.5-90.3 64.5-.3 28.1 26.5 43.7 46.8 53.1 20.8 9.6 27.8 15.7 27.7 24.3-.1 13.1-16.6 19.1-32 19.1-21.4 0-32.7-3-50.3-10.2l-6.9-3.1-7.5 43.8c12.5 5.5 35.6 10.2 59.6 10.5 56.2 0 92.6-26.2 93-66.7.2-22.2-14-39.1-44.8-53.1-18.7-9-30.1-15-30-24.2 0-8.1 9.7-16.8 30.6-16.8 17.5-.3 30.1 3.5 40 7.5l4.8 2.3 7.2-42.7zM646.5 152.9h-41.3c-12.8 0-22.4 3.5-28 16.2l-79.4 179.6h56.2s9.2-24.1 11.2-29.4h68.7c1.6 6.9 6.5 29.4 6.5 29.4h49.7l-43.6-195.8zm-66 126.5c4.4-11.3 21.5-54.7 21.5-54.7-.3.5 4.4-11.4 7.1-18.8l3.6 17s10.3 47.2 12.5 57.2h-44.8v-.7zM231.4 152.9L179 285l-5.6-27.1c-9.7-31.2-39.9-65-73.7-81.9l47.9 171.5h56.6l84.2-195.6h-57z" fill="#fff"/>
-                <path d="M146.9 152.9H59.6l-.7 3.8c67.2 16.2 111.7 55.4 130.1 102.5l-18.8-90.1c-3.2-12.4-12.8-15.7-23.3-16.2z" fill="#F9A533"/>
-              </svg>
-              {/* Mastercard logo */}
-              <svg className="h-5 w-8" viewBox="0 0 780 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="780" height="500" rx="40" fill="#fff" fillOpacity="0"/>
-                <circle cx="312" cy="250" r="148" fill="#EB001B"/>
-                <circle cx="468" cy="250" r="148" fill="#F79E1B"/>
-                <path d="M390 130.7c37.4 29.5 61.4 75.3 61.4 126.3s-24 96.8-61.4 126.3c-37.4-29.5-61.4-75.3-61.4-126.3s24-96.8 61.4-126.3z" fill="#FF5F00"/>
-              </svg>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
+              <CardBrandIcons brand={cardBrand} />
             </div>
           </div>
           {/* Cardholder name */}
@@ -218,6 +255,7 @@ export function LeadCaptureForm({
           <div className="grid grid-cols-2 gap-2.5">
             <input
               type="text"
+              inputMode="numeric"
               placeholder="MM / AA"
               value={form.cardExpiry}
               onChange={(e) => handleChange("cardExpiry", formatExpiry(e.target.value))}
@@ -230,6 +268,7 @@ export function LeadCaptureForm({
             />
             <input
               type="text"
+              inputMode="numeric"
               placeholder="CVC"
               value={form.cardCvc}
               onChange={(e) => handleChange("cardCvc", e.target.value.replace(/\D/g, "").slice(0, 4))}
@@ -275,6 +314,7 @@ export function LeadCaptureForm({
           <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-300" />
           <input
             type="text"
+            inputMode="numeric"
             placeholder="000.000.000-00"
             required
             value={form.document}
