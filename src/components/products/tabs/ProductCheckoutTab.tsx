@@ -74,7 +74,7 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
   const upsert = useUpsertCheckoutPage();
   const [form, setForm] = useState<FormState>(defaultForm);
   const [slug, setSlug] = useState("");
-  const [editorTab, setEditorTab] = useState<"tracking">("tracking");
+  
 
   useEffect(() => {
     if (existingPage) {
