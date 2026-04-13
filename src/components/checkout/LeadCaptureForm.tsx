@@ -115,7 +115,7 @@ export function LeadCaptureForm({
                 fontWeight: form.paymentMethod === m.id ? 600 : 400,
               }}
             >
-              <span className="text-base">{m.icon}</span>
+              <span className="flex-shrink-0">{m.icon}</span>
               <span>{m.label}</span>
             </button>
           ))}
