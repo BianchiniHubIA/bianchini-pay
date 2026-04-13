@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   Eye, Save, Copy, ExternalLink,
-  EyeOff, Palette, Code, Sparkles
+  EyeOff, Code
 } from "lucide-react";
 import type { Product } from "@/hooks/useProducts";
 import { useOffersByProduct, type Offer } from "@/hooks/useOffers";
@@ -50,9 +50,9 @@ const defaultForm: FormState = {
   subheadline: "",
   description: "",
   cta_text: "Comprar agora",
-  primary_color: "#EF4444",
+  primary_color: "#FF6A00",
   bg_color: "#1a1a1a",
-  accent_color: "#0ACF83",
+  accent_color: "#FF6A00",
   image_url: "",
   logo_url: "",
   show_guarantee: false,
@@ -68,25 +68,13 @@ interface Props {
   product: Product;
 }
 
-const colorPresets = [
-  { primary: "#EF4444", bg: "#1a1a1a", accent: "#0ACF83", label: "Vermelho" },
-  { primary: "#3366FF", bg: "#1a1a1a", accent: "#0ACF83", label: "Azul" },
-  { primary: "#10B981", bg: "#1a1a1a", accent: "#3366FF", label: "Verde" },
-  { primary: "#8B5CF6", bg: "#1a1a1a", accent: "#EC4899", label: "Roxo" },
-  { primary: "#F59E0B", bg: "#1A1A2E", accent: "#F59E0B", label: "Gold" },
-  { primary: "#06B6D4", bg: "#0F172A", accent: "#22D3EE", label: "Cyan" },
-  { primary: "#EC4899", bg: "#1a1a1a", accent: "#A855F7", label: "Rosa" },
-  { primary: "#F97316", bg: "#1a1a1a", accent: "#EAB308", label: "Laranja" },
-  { primary: "#3366FF", bg: "#FFFFFF", accent: "#0ACF83", label: "Claro" },
-  { primary: "#1a1a1a", bg: "#FFFFFF", accent: "#1a1a1a", label: "Neutro" },
-];
 
 function OfferCheckoutEditor({ offer }: { offer: Offer }) {
   const { data: existingPage, isLoading: pageLoading } = useCheckoutPageByOffer(offer.id);
   const upsert = useUpsertCheckoutPage();
   const [form, setForm] = useState<FormState>(defaultForm);
   const [slug, setSlug] = useState("");
-  const [editorTab, setEditorTab] = useState<"design" | "tracking">("design");
+  
 
   useEffect(() => {
     if (existingPage) {
@@ -198,114 +186,33 @@ function OfferCheckoutEditor({ offer }: { offer: Offer }) {
 
           <Separator />
 
-          {/* Tabs */}
-          <div className="flex rounded-lg border bg-muted/30 p-1 gap-1">
-            {([
-              { id: "design" as const, label: "Cores", icon: Palette },
-              { id: "tracking" as const, label: "Tracking", icon: Code },
-            ]).map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setEditorTab(tab.id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-xs font-medium transition-colors ${
-                  editorTab === tab.id ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <tab.icon className="h-3.5 w-3.5" />
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {editorTab === "design" && (
-            <div className="space-y-4">
-              {/* Presets */}
-              <Card>
-                <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-xs flex items-center gap-2">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" /> Temas prontos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4">
-                  <div className="grid grid-cols-5 gap-2">
-                    {colorPresets.map((preset) => {
-                      const isActive = form.primary_color === preset.primary && form.bg_color === preset.bg;
-                      return (
-                        <button
-                          key={preset.label}
-                          onClick={() => { update("primary_color", preset.primary); update("bg_color", preset.bg); update("accent_color", preset.accent); }}
-                          className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border transition-colors ${isActive ? "border-primary bg-primary/5" : "hover:border-primary/30"}`}
-                        >
-                          <div className="flex gap-0.5">
-                            <div className="h-4 w-4 rounded-full" style={{ backgroundColor: preset.primary }} />
-                            <div className="h-4 w-4 rounded-full border" style={{ backgroundColor: preset.bg }} />
-                          </div>
-                          <span className="text-[9px] text-muted-foreground">{preset.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Individual colors */}
-              <Card>
-                <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-xs flex items-center gap-2">
-                    <Palette className="h-3.5 w-3.5 text-primary" /> Cores individuais
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 px-4 pb-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px]">Cor principal <span className="text-muted-foreground font-normal">(botão, links)</span></Label>
-                    <div className="flex gap-2">
-                      <input type="color" value={form.primary_color} onChange={(e) => update("primary_color", e.target.value)} className="h-9 w-12 rounded-lg border cursor-pointer bg-transparent" />
-                      <Input value={form.primary_color} onChange={(e) => update("primary_color", e.target.value)} className="font-mono text-sm" />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px]">Cor de fundo <span className="text-muted-foreground font-normal">(resumo)</span></Label>
-                    <div className="flex gap-2">
-                      <input type="color" value={form.bg_color} onChange={(e) => update("bg_color", e.target.value)} className="h-9 w-12 rounded-lg border cursor-pointer bg-transparent" />
-                      <Input value={form.bg_color} onChange={(e) => update("bg_color", e.target.value)} className="font-mono text-sm" />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px]">Cor de destaque <span className="text-muted-foreground font-normal">(total, selos)</span></Label>
-                    <div className="flex gap-2">
-                      <input type="color" value={form.accent_color || "#0ACF83"} onChange={(e) => update("accent_color", e.target.value)} className="h-9 w-12 rounded-lg border cursor-pointer bg-transparent" />
-                      <Input value={form.accent_color} onChange={(e) => update("accent_color", e.target.value)} placeholder="#0ACF83" className="font-mono text-sm" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {editorTab === "tracking" && (
-            <Card>
-              <CardContent className="space-y-4 pt-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Facebook Pixel ID</Label>
-                  <Input value={form.fb_pixel_id} onChange={(e) => update("fb_pixel_id", e.target.value)} placeholder="123456789012345" className="font-mono text-sm" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Google Analytics (GA4)</Label>
-                  <Input value={form.ga_tracking_id} onChange={(e) => update("ga_tracking_id", e.target.value)} placeholder="G-XXXXXXXXXX" className="font-mono text-sm" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Google Tag Manager</Label>
-                  <Input value={form.gtm_id} onChange={(e) => update("gtm_id", e.target.value)} placeholder="GTM-XXXXXXX" className="font-mono text-sm" />
-                </div>
-                <Separator />
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Scripts personalizados</Label>
-                  <Textarea value={form.custom_scripts} onChange={(e) => update("custom_scripts", e.target.value)} placeholder="<script>...</script>" rows={4} className="font-mono text-xs" />
-                  <p className="text-[10px] text-muted-foreground">Inserido no &lt;head&gt;</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-xs flex items-center gap-2">
+                <Code className="h-3.5 w-3.5 text-primary" /> Tracking
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 px-4 pb-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Facebook Pixel ID</Label>
+                <Input value={form.fb_pixel_id} onChange={(e) => update("fb_pixel_id", e.target.value)} placeholder="123456789012345" className="font-mono text-sm" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Google Analytics (GA4)</Label>
+                <Input value={form.ga_tracking_id} onChange={(e) => update("ga_tracking_id", e.target.value)} placeholder="G-XXXXXXXXXX" className="font-mono text-sm" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Google Tag Manager</Label>
+                <Input value={form.gtm_id} onChange={(e) => update("gtm_id", e.target.value)} placeholder="GTM-XXXXXXX" className="font-mono text-sm" />
+              </div>
+              <Separator />
+              <div className="space-y-1.5">
+                <Label className="text-xs">Scripts personalizados</Label>
+                <Textarea value={form.custom_scripts} onChange={(e) => update("custom_scripts", e.target.value)} placeholder="<script>...</script>" rows={4} className="font-mono text-xs" />
+                <p className="text-[10px] text-muted-foreground">Inserido no &lt;head&gt;</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right: Preview */}
