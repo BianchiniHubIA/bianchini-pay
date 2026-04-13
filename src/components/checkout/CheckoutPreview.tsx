@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { Shield, Lock, Tag, X, Loader2 } from "lucide-react";
-import { LeadCaptureForm, LeadFormData } from "./LeadCaptureForm";
-import { BlockRenderer } from "./blocks/BlockRenderer";
-import type { BlocksLayout, DropZoneId, PlacedBlock } from "./blocks/types";
-import { DEFAULT_BLOCKS_LAYOUT } from "./blocks/types";
+import { LeadCaptureForm, type LeadFormData } from "./LeadCaptureForm";
 
 interface CheckoutPreviewProps {
   template: string;
@@ -21,7 +18,7 @@ interface CheckoutPreviewProps {
   offerName: string;
   priceCents: number;
   billingType: string;
-  blocksLayout?: BlocksLayout;
+  blocksLayout?: any;
   onLeadSubmit?: (data: LeadFormData) => void;
   onCouponValidate?: (code: string) => Promise<{ valid: boolean; discount_percent: number } | null>;
   appliedCoupon?: { code: string; discount_percent: number } | null;
@@ -49,35 +46,14 @@ function lighten(hex: string, amount: number): string {
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
-function renderZoneBlocks(blocks: PlacedBlock[], primaryColor: string, textColor: string, mutedColor: string, accentColor: string, side: "left" | "right" | "full") {
-  if (!blocks || blocks.length === 0) return null;
-  return (
-    <div className="space-y-2">
-      {blocks.map((block, i) => (
-        <BlockRenderer
-          key={`${block.type}-${i}`}
-          block={block}
-          primaryColor={primaryColor}
-          textColor={textColor}
-          mutedColor={mutedColor}
-          accentColor={accentColor}
-          side={side}
-        />
-      ))}
-    </div>
-  );
-}
-
 export function CheckoutPreview({
   template, headline, subheadline, description, ctaText,
   primaryColor, bgColor, accentColor, imageUrl, logoUrl,
   showGuarantee, guaranteeText, offerName, priceCents, billingType,
-  blocksLayout,
   onLeadSubmit, onCouponValidate, appliedCoupon: externalCoupon,
 }: CheckoutPreviewProps) {
   const price = formatPrice(priceCents);
   const isRecurring = billingType === "recurring";
-  const layout = blocksLayout || DEFAULT_BLOCKS_LAYOUT;
 
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
@@ -123,20 +99,15 @@ export function CheckoutPreview({
   return (
     <div className="min-h-[560px] flex flex-col" style={{ fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }}>
       <div className="flex flex-1">
-        {/* LEFT */}
+        {/* LEFT - Summary */}
         <div className="w-1/2 p-8 flex flex-col justify-between" style={{ backgroundColor: leftBg, color: leftText }}>
           <div>
-            {/* Bianchini Pay */}
             <div className="mb-6">
               <span className="text-base font-bold tracking-tight">
                 Bianchini <span style={{ color: primaryColor }}>Pay</span>
               </span>
             </div>
 
-            {/* Left-top zone */}
-            {renderZoneBlocks(layout["left-top"], primaryColor, leftText, leftMuted, accent, "left")}
-
-            {/* Product + price */}
             <p className="text-xs mb-0.5" style={{ color: leftSubtle }}>
               {isRecurring ? "Assinar" : "Comprar"} {offerName}
             </p>
@@ -149,7 +120,6 @@ export function CheckoutPreview({
 
             <div className="border-t my-4" style={{ borderColor: leftDivider }} />
 
-            {/* Order summary */}
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <div>
@@ -198,13 +168,6 @@ export function CheckoutPreview({
                 <p className="text-sm font-bold" style={{ color: accent }}>{formatPrice(totalCents)}</p>
               </div>
             </div>
-
-            {/* Left-center zone */}
-            {layout["left-center"]?.length > 0 && (
-              <div className="mt-4">
-                {renderZoneBlocks(layout["left-center"], primaryColor, leftText, leftMuted, accent, "left")}
-              </div>
-            )}
           </div>
 
           {/* Footer */}
@@ -223,16 +186,9 @@ export function CheckoutPreview({
           </div>
         </div>
 
-        {/* RIGHT */}
+        {/* RIGHT - Form */}
         <div className="w-1/2 p-8 flex flex-col" style={{ backgroundColor: rightBg }}>
           <div className="max-w-sm mx-auto w-full flex-1">
-            {/* Right-top zone */}
-            {layout["right-top"]?.length > 0 && (
-              <div className="mb-4">
-                {renderZoneBlocks(layout["right-top"], primaryColor, rightText, rightMuted, accent, "right")}
-              </div>
-            )}
-
             <LeadCaptureForm
               primaryColor={primaryColor}
               btnTextColor="#ffffff"
@@ -243,24 +199,6 @@ export function CheckoutPreview({
               onSubmit={onLeadSubmit}
             />
 
-            {/* Right-center zone */}
-            {layout["right-center"]?.length > 0 && (
-              <div className="mt-4">
-                {renderZoneBlocks(layout["right-center"], primaryColor, rightText, rightMuted, accent, "right")}
-              </div>
-            )}
-
-            {/* Legacy guarantee (if no blocks used) */}
-            {showGuarantee && !(layout["right-center"]?.some(b => b.type === "guarantee")) && !(layout["footer"]?.some(b => b.type === "guarantee")) && (
-              <div className="mt-4 flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: `${rightText}06`, border: `1px solid ${rightText}10` }}>
-                <Shield className="h-5 w-5 shrink-0" style={{ color: accent }} />
-                <div>
-                  <p className="text-xs font-semibold" style={{ color: rightText }}>{guaranteeText}</p>
-                  <p className="text-[10px] mt-0.5" style={{ color: rightMuted }}>Seu dinheiro de volta, sem perguntas.</p>
-                </div>
-              </div>
-            )}
-
             <div className="mt-4 flex items-center justify-center gap-1.5">
               <Lock className="h-3 w-3" style={{ color: rightMuted }} />
               <span className="text-[10px]" style={{ color: rightMuted }}>Transação segura · Dados criptografados</span>
@@ -268,15 +206,6 @@ export function CheckoutPreview({
           </div>
         </div>
       </div>
-
-      {/* Footer zone (full width) */}
-      {layout["footer"]?.length > 0 && (
-        <div className="px-8 py-4" style={{ backgroundColor: rightBg }}>
-          <div className="max-w-2xl mx-auto">
-            {renderZoneBlocks(layout["footer"], primaryColor, rightText, rightMuted, accent, "full")}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
