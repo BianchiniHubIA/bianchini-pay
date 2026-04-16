@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Eye, RefreshCw, Search, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Eye, RefreshCw, Search, SlidersHorizontal, ChevronDown, RotateCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrders } from "@/hooks/useOrders";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function formatCents(cents: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
@@ -31,6 +33,27 @@ export default function Orders() {
   const { data: orders, isLoading, refetch } = useOrders();
   const [activeTab, setActiveTab] = useState("paid");
   const [search, setSearch] = useState("");
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+
+  async function handleSync(orderId: string) {
+    setSyncingId(orderId);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-order-status", {
+        body: { order_id: orderId },
+      });
+      if (error) throw error;
+      if (data?.changed) {
+        toast.success(`Status atualizado: ${data.previous_status} → ${data.new_status}`);
+        refetch();
+      } else {
+        toast.info(`Sem mudança (status atual: ${data?.new_status ?? "desconhecido"})`);
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao sincronizar");
+    } finally {
+      setSyncingId(null);
+    }
+  }
 
   const allOrders = orders ?? [];
   const paidOrders = allOrders.filter((o) => o.status === "paid");
@@ -157,13 +180,14 @@ export default function Orders() {
         </div>
 
         {/* Table Header */}
-        <div className="grid grid-cols-6 gap-0 px-6 py-3 bg-accent/50 text-xs text-primary font-medium">
+        <div className="grid grid-cols-7 gap-0 px-6 py-3 bg-accent/50 text-xs text-primary font-medium">
           <span>Data</span>
           <span>Produto</span>
           <span>Cliente</span>
           <span>Status</span>
           <span>Juros Recebidos</span>
           <span>Valor Líquido</span>
+          <span className="text-right">Ações</span>
         </div>
 
         {/* Table Body */}
@@ -175,7 +199,7 @@ export default function Orders() {
           searched.map((order) => (
             <div
               key={order.id}
-              className="grid grid-cols-6 gap-0 px-6 py-3 border-t border-border text-sm items-center"
+              className="grid grid-cols-7 gap-0 px-6 py-3 border-t border-border text-sm items-center"
             >
               <span className="text-xs text-muted-foreground">
                 {format(new Date(order.created_at), "dd/MM/yyyy HH:mm")}
@@ -189,6 +213,20 @@ export default function Orders() {
               </span>
               <span className="text-muted-foreground">R$ 0,00</span>
               <span className="font-medium">{formatCents(order.amount_cents)}</span>
+              <span className="flex justify-end">
+                {order.status === "pending" && (order as any).external_id ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={syncingId === order.id}
+                    onClick={() => handleSync(order.id)}
+                    className="gap-1.5 h-8 text-xs"
+                  >
+                    <RotateCw className={`h-3 w-3 ${syncingId === order.id ? "animate-spin" : ""}`} />
+                    Sincronizar
+                  </Button>
+                ) : null}
+              </span>
             </div>
           ))
         )}
