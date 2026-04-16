@@ -172,35 +172,30 @@ export function LeadCaptureForm({
       </div>
 
       {/* Forma de Pagamento */}
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <label className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: mutedColor }}>
           Forma de pagamento
         </label>
-        <div
-          className="rounded-lg overflow-hidden"
-          style={{
-            border: "1px solid rgba(0,0,0,0.10)",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-          }}
-        >
-          {paymentMethods.map((m, i) => {
+        <div className={`grid gap-2 ${paymentMethods.length === 1 ? "grid-cols-1" : "grid-cols-3"}`}>
+          {paymentMethods.map((m) => {
             const isActive = form.paymentMethod === m.id;
             return (
               <button
                 key={m.id}
                 type="button"
                 onClick={() => handleChange("paymentMethod", m.id)}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-left transition-all duration-200"
+                className="relative flex flex-col items-center justify-center gap-1.5 px-2 py-3 rounded-xl text-xs font-medium transition-all duration-200 hover:-translate-y-0.5"
                 style={{
-                  backgroundColor: isActive ? `${primaryColor}0A` : "#fff",
-                  borderLeft: isActive ? `3px solid ${primaryColor}` : "3px solid transparent",
-                  borderTop: i > 0 ? "1px solid rgba(0,0,0,0.05)" : "none",
-                  color: isActive ? "#1a1a1a" : "rgba(0,0,0,0.5)",
-                  fontWeight: isActive ? 600 : 400,
+                  backgroundColor: isActive ? `${primaryColor}0F` : "#fff",
+                  border: isActive ? `2px solid ${primaryColor}` : "2px solid rgba(0,0,0,0.08)",
+                  color: isActive ? "#1a1a1a" : "rgba(0,0,0,0.6)",
+                  boxShadow: isActive
+                    ? `0 4px 12px ${primaryColor}25`
+                    : "0 1px 2px rgba(0,0,0,0.04)",
                 }}
               >
-                <span className="flex-shrink-0 flex items-center justify-center w-5">{m.icon}</span>
-                <span>{m.label}</span>
+                <span className="flex items-center justify-center h-6">{m.icon}</span>
+                <span className="leading-none text-center">{m.label}</span>
               </button>
             );
           })}
