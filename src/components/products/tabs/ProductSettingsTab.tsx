@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, CreditCard, BarChart3, Trash2, Plus } from "lucide-react";
+import { Save, CreditCard, BarChart3, Trash2, Plus, Webhook, Copy, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import type { Product } from "@/hooks/useProducts";
 
 interface Props {
@@ -23,7 +24,23 @@ export function ProductSettingsTab({ product, onSave }: Props) {
   const [googleAdsId, setGoogleAdsId] = useState(product.google_ads_id ?? "");
   const [metaAdsId, setMetaAdsId] = useState(product.meta_ads_id ?? "");
 
+  const [webhookUrl, setWebhookUrl] = useState((product as any).webhook_url ?? "");
+  const [webhookSecret, setWebhookSecret] = useState((product as any).webhook_secret ?? "");
+
   const [pixelTab, setPixelTab] = useState("facebook");
+
+  const generateSecret = () => {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    const hex = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+    setWebhookSecret(`whsec_${hex}`);
+    toast.success("Novo secret gerado. Salve e copie pro outro site.");
+  };
+
+  const copy = (val: string, label: string) => {
+    navigator.clipboard.writeText(val);
+    toast.success(`${label} copiado`);
+  };
 
   const handleSave = () =>
     onSave({
@@ -34,6 +51,8 @@ export function ProductSettingsTab({ product, onSave }: Props) {
       ga_tracking_id: gaTrackingId || null,
       google_ads_id: googleAdsId || null,
       meta_ads_id: metaAdsId || null,
+      webhook_url: webhookUrl || null,
+      webhook_secret: webhookSecret || null,
     });
 
   const pixelConfigs = [
@@ -140,6 +159,61 @@ export function ProductSettingsTab({ product, onSave }: Props) {
               </TabsContent>
             ))}
           </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Webhook */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Webhook className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Webhook de Acesso</CardTitle>
+              <CardDescription>
+                Notifica seu site externo quando uma compra deste produto for paga, reembolsada ou cancelada
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="webhook-url">URL do Webhook</Label>
+            <Input
+              id="webhook-url"
+              placeholder="https://seusite.com/api/webhooks/bianchini-go"
+              value={webhookUrl}
+              onChange={(e) => setWebhookUrl(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Endpoint HTTPS que recebe POST com payload assinado em <code className="font-mono">X-Webhook-Signature</code> (HMAC-SHA256).
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="webhook-secret">Secret</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="webhook-secret"
+                placeholder="Clique em Gerar para criar um secret"
+                value={webhookSecret}
+                onChange={(e) => setWebhookSecret(e.target.value)}
+                className="font-mono text-xs"
+              />
+              {webhookSecret && (
+                <Button type="button" variant="outline" size="icon" onClick={() => copy(webhookSecret, "Secret")}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              )}
+              <Button type="button" variant="outline" size="sm" onClick={generateSecret} className="gap-1.5">
+                <RefreshCw className="h-3.5 w-3.5" /> Gerar
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Cole esse mesmo secret no outro site para validar a assinatura dos webhooks recebidos.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
