@@ -751,6 +751,8 @@ export type Database = {
           support_email: string | null
           type: Database["public"]["Enums"]["product_type"]
           updated_at: string
+          webhook_secret: string | null
+          webhook_url: string | null
         }
         Insert: {
           access_type?: string | null
@@ -774,6 +776,8 @@ export type Database = {
           support_email?: string | null
           type?: Database["public"]["Enums"]["product_type"]
           updated_at?: string
+          webhook_secret?: string | null
+          webhook_url?: string | null
         }
         Update: {
           access_type?: string | null
@@ -797,6 +801,8 @@ export type Database = {
           support_email?: string | null
           type?: Database["public"]["Enums"]["product_type"]
           updated_at?: string
+          webhook_secret?: string | null
+          webhook_url?: string | null
         }
         Relationships: [
           {
@@ -872,6 +878,76 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_deliveries: {
+        Row: {
+          attempt: number
+          created_at: string
+          delivered_at: string | null
+          error: string | null
+          event_type: string
+          id: string
+          order_id: string | null
+          organization_id: string
+          payload: Json
+          product_id: string | null
+          response_body: string | null
+          status_code: number | null
+          target_url: string
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          delivered_at?: string | null
+          error?: string | null
+          event_type: string
+          id?: string
+          order_id?: string | null
+          organization_id: string
+          payload: Json
+          product_id?: string | null
+          response_body?: string | null
+          status_code?: number | null
+          target_url: string
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          delivered_at?: string | null
+          error?: string | null
+          event_type?: string
+          id?: string
+          order_id?: string | null
+          organization_id?: string
+          payload?: Json
+          product_id?: string | null
+          response_body?: string | null
+          status_code?: number | null
+          target_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_deliveries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_deliveries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
