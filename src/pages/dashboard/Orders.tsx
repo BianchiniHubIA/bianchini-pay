@@ -159,13 +159,14 @@ export default function Orders() {
         </div>
 
         {/* Table Header */}
-        <div className="grid grid-cols-6 gap-0 px-6 py-3 bg-accent/50 text-xs text-primary font-medium">
+        <div className="grid grid-cols-7 gap-0 px-6 py-3 bg-accent/50 text-xs text-primary font-medium">
           <span>Data</span>
           <span>Produto</span>
           <span>Cliente</span>
           <span>Status</span>
           <span>Juros Recebidos</span>
           <span>Valor Líquido</span>
+          <span className="text-right">Ações</span>
         </div>
 
         {/* Table Body */}
@@ -177,7 +178,7 @@ export default function Orders() {
           searched.map((order) => (
             <div
               key={order.id}
-              className="grid grid-cols-6 gap-0 px-6 py-3 border-t border-border text-sm items-center"
+              className="grid grid-cols-7 gap-0 px-6 py-3 border-t border-border text-sm items-center"
             >
               <span className="text-xs text-muted-foreground">
                 {format(new Date(order.created_at), "dd/MM/yyyy HH:mm")}
@@ -191,6 +192,20 @@ export default function Orders() {
               </span>
               <span className="text-muted-foreground">R$ 0,00</span>
               <span className="font-medium">{formatCents(order.amount_cents)}</span>
+              <span className="flex justify-end">
+                {order.status === "pending" && (order as any).external_id ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={syncingId === order.id}
+                    onClick={() => handleSync(order.id)}
+                    className="gap-1.5 h-8 text-xs"
+                  >
+                    <RotateCw className={`h-3 w-3 ${syncingId === order.id ? "animate-spin" : ""}`} />
+                    Sincronizar
+                  </Button>
+                ) : null}
+              </span>
             </div>
           ))
         )}
