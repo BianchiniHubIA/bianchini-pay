@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useOffersByProduct, useCreateOffer, useDeleteOffer } from "@/hooks/useOffers";
+import { useOffersByProduct, useCreateOffer, useUpdateOffer, useDeleteOffer, type Offer } from "@/hooks/useOffers";
 import { OfferFormDialog } from "@/components/products/OfferFormDialog";
-import { Plus, Trash2, Package, DollarSign, Headphones, Save } from "lucide-react";
+import { Plus, Trash2, Package, DollarSign, Headphones, Save, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/hooks/useProducts";
 
@@ -32,8 +32,10 @@ export function ProductGeneralTab({ product, onSave }: Props) {
   const [producerName, setProducerName] = useState(product.producer_name ?? "");
 
   const [offerFormOpen, setOfferFormOpen] = useState(false);
+  const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
   const { data: offers, isLoading: offersLoading } = useOffersByProduct(product.id);
   const createOffer = useCreateOffer();
+  const updateOffer = useUpdateOffer();
   const deleteOffer = useDeleteOffer();
 
   const handleSave = () =>
@@ -149,7 +151,11 @@ export function ProductGeneralTab({ product, onSave }: Props) {
                     </TableHeader>
                     <TableBody>
                       {offers.map((offer) => (
-                        <TableRow key={offer.id}>
+                        <TableRow
+                          key={offer.id}
+                          className="cursor-pointer"
+                          onClick={() => { setEditingOffer(offer); setOfferFormOpen(true); }}
+                        >
                           <TableCell className="font-medium">{offer.name}</TableCell>
                           <TableCell className="font-mono text-sm">{formatCents(offer.price_cents)}</TableCell>
                           <TableCell>
@@ -174,18 +180,28 @@ export function ProductGeneralTab({ product, onSave }: Props) {
                               {offer.is_active ? "Ativo" : "Inativo"}
                             </Badge>
                           </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={async () => {
-                                await deleteOffer.mutateAsync(offer.id);
-                                toast.success("Oferta excluída!");
-                              }}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={() => { setEditingOffer(offer); setOfferFormOpen(true); }}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                onClick={async () => {
+                                  await deleteOffer.mutateAsync(offer.id);
+                                  toast.success("Oferta excluída!");
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -237,13 +253,28 @@ export function ProductGeneralTab({ product, onSave }: Props) {
       </div>
 
       <OfferFormDialog
+        key={editingOffer?.id ?? "new"}
         open={offerFormOpen}
-        onClose={() => setOfferFormOpen(false)}
+        onClose={() => { setOfferFormOpen(false); setEditingOffer(null); }}
         onSubmit={async (data) => {
-          await createOffer.mutateAsync({ name: data.name, price_cents: data.price_cents, billing_type: data.billing_type, billing_interval: data.billing_interval, installments: data.installments, trial_days: data.trial_days, is_active: data.is_active, product_id: product.id });
-          toast.success("Oferta criada!");
+          if (editingOffer) {
+            await updateOffer.mutateAsync({
+              id: editingOffer.id,
+              name: data.name,
+              price_cents: data.price_cents,
+              billing_type: data.billing_type,
+              billing_interval: data.billing_type === "recurring" ? data.billing_interval : null,
+              installments: data.installments,
+              trial_days: data.trial_days,
+              is_active: data.is_active,
+            });
+            toast.success("Oferta atualizada!");
+          } else {
+            await createOffer.mutateAsync({ name: data.name, price_cents: data.price_cents, billing_type: data.billing_type, billing_interval: data.billing_interval, installments: data.installments, trial_days: data.trial_days, is_active: data.is_active, product_id: product.id });
+            toast.success("Oferta criada!");
+          }
         }}
-        offer={null}
+        offer={editingOffer}
       />
     </div>
   );
