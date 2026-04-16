@@ -9,6 +9,17 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const MP_API = "https://api.mercadopago.com";
 
+async function fireWebhook(orderId: string, event: string) {
+  await fetch(`${SUPABASE_URL}/functions/v1/send-webhook`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+    body: JSON.stringify({ order_id: orderId, event }),
+  });
+}
+
 interface PaymentRequest {
   offer_id: string;
   checkout_page_id: string;
@@ -199,6 +210,10 @@ Deno.serve(async (req) => {
         .select()
         .single();
 
+      if (order && subStatus === "paid") {
+        fireWebhook(order.id, "order.paid").catch((e) => console.error("webhook fail:", e));
+      }
+
       return new Response(
         JSON.stringify({
           success: true,
@@ -239,6 +254,10 @@ Deno.serve(async (req) => {
         })
         .select()
         .single();
+
+      if (order && orderStatus === "paid") {
+        fireWebhook(order.id, "order.paid").catch((e) => console.error("webhook fail:", e));
+      }
 
       return new Response(
         JSON.stringify({
