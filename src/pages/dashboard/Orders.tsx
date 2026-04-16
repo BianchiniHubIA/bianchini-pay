@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Eye, RefreshCw, Search, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Eye, RefreshCw, Search, SlidersHorizontal, ChevronDown, RotateCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrders } from "@/hooks/useOrders";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function formatCents(cents: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
