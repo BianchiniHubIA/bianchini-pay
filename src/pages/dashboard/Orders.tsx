@@ -33,6 +33,27 @@ export default function Orders() {
   const { data: orders, isLoading, refetch } = useOrders();
   const [activeTab, setActiveTab] = useState("paid");
   const [search, setSearch] = useState("");
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+
+  async function handleSync(orderId: string) {
+    setSyncingId(orderId);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-order-status", {
+        body: { order_id: orderId },
+      });
+      if (error) throw error;
+      if (data?.changed) {
+        toast.success(`Status atualizado: ${data.previous_status} → ${data.new_status}`);
+        refetch();
+      } else {
+        toast.info(`Sem mudança (status atual: ${data?.new_status ?? "desconhecido"})`);
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao sincronizar");
+    } finally {
+      setSyncingId(null);
+    }
+  }
 
   const allOrders = orders ?? [];
   const paidOrders = allOrders.filter((o) => o.status === "paid");
