@@ -1,0 +1,1 @@
+DELETE FROM public.team_invites WHERE lower(email) = 'victorlbianchini@gmail.com' AND status = 'pending';
