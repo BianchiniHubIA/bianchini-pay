@@ -282,6 +282,7 @@ export default function PublicCheckout() {
         const result = await response.json();
         track("payment_initiated");
         setPaymentResult(result.payment);
+        if (result.order_id) setOrderId(result.order_id);
 
         if (result.payment.status === "approved") {
           const isSubscription = result.type === "subscription";
