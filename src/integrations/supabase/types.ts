@@ -1040,6 +1040,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      invite_or_add_member: {
+        Args: {
+          _email: string
+          _organization_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "editor" | "viewer"
