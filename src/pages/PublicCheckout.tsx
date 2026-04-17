@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, CheckCircle2, Copy, QrCode } from "lucide-react";
 import { useEffect, useCallback, useState, useRef } from "react";
+import { ArrowLeft } from "lucide-react";
 import { useTrackEvent } from "@/hooks/useTrackEvent";
 import type { LeadFormData } from "@/components/checkout/LeadCaptureForm";
 import { toast } from "sonner";
