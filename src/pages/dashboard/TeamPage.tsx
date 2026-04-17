@@ -110,8 +110,12 @@ export default function TeamPage() {
   const handleInvite = async () => {
     if (!inviteEmail) return;
     try {
-      await createInvite.mutateAsync({ email: inviteEmail, role: inviteRole });
-      toast.success(`Convite enviado para ${inviteEmail}`);
+      const result = await createInvite.mutateAsync({ email: inviteEmail, role: inviteRole });
+      if (result?.status === "added") {
+        toast.success(`${inviteEmail} foi adicionado direto à equipe`);
+      } else {
+        toast.success(`Convite criado para ${inviteEmail} (será adicionado ao se cadastrar)`);
+      }
       setInviteEmail("");
       setInviteRole("editor");
       setInviteOpen(false);
