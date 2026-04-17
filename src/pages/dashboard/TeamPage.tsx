@@ -60,26 +60,17 @@ function useTeamInvites() {
   const createInvite = useMutation({
     mutationFn: async ({ email, role }: { email: string; role: string }) => {
       if (!organizationId) throw new Error("Sem organização");
-      // Check if invite already exists
-      const { data: existing } = await supabase
-        .from("team_invites")
-        .select("id")
-        .eq("organization_id", organizationId)
-        .eq("email", email)
-        .eq("status", "pending")
-        .maybeSingle();
-      if (existing) throw new Error("Já existe um convite pendente para este email");
-
-      const { error } = await supabase.from("team_invites").insert({
-        organization_id: organizationId,
-        email,
-        role,
-        invited_by: (await supabase.auth.getUser()).data.user?.id,
+      const { data, error } = await (supabase as any).rpc("invite_or_add_member", {
+        _organization_id: organizationId,
+        _email: email,
+        _role: role,
       });
       if (error) throw error;
+      return data as { status: "added" | "invited" };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team_invites", organizationId] });
+      queryClient.invalidateQueries({ queryKey: ["org_members", organizationId] });
     },
   });
 
@@ -119,8 +110,12 @@ export default function TeamPage() {
   const handleInvite = async () => {
     if (!inviteEmail) return;
     try {
-      await createInvite.mutateAsync({ email: inviteEmail, role: inviteRole });
-      toast.success(`Convite enviado para ${inviteEmail}`);
+      const result = await createInvite.mutateAsync({ email: inviteEmail, role: inviteRole });
+      if (result?.status === "added") {
+        toast.success(`${inviteEmail} foi adicionado direto à equipe`);
+      } else {
+        toast.success(`Convite criado para ${inviteEmail} (será adicionado ao se cadastrar)`);
+      }
       setInviteEmail("");
       setInviteRole("editor");
       setInviteOpen(false);
