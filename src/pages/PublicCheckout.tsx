@@ -33,7 +33,30 @@ export default function PublicCheckout() {
   const [processing, setProcessing] = useState(false);
   const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_percent: number } | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const mpInstanceRef = useRef<any>(null);
+
+  // Poll order status when waiting for async payment (Pix/Boleto)
+  useEffect(() => {
+    if (!orderId || !paymentResult) return;
+    if (paymentResult.status === "approved") return;
+
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("status")
+        .eq("id", orderId)
+        .maybeSingle();
+      if (data?.status === "paid") {
+        setPaymentResult((prev) => prev ? { ...prev, status: "approved" } : prev);
+        track("payment_approved");
+        toast.success("Pagamento aprovado! 🎉");
+        clearInterval(interval);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [orderId, paymentResult, track]);
 
   const { data: offer } = useQuery({
     queryKey: ["public-offer", page?.offer_id],
