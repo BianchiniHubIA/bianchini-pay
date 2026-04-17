@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, CheckCircle2, Copy, QrCode } from "lucide-react";
 import { useEffect, useCallback, useState, useRef } from "react";
+import { ArrowLeft } from "lucide-react";
 import { useTrackEvent } from "@/hooks/useTrackEvent";
 import type { LeadFormData } from "@/components/checkout/LeadCaptureForm";
 import { toast } from "sonner";
@@ -32,7 +33,30 @@ export default function PublicCheckout() {
   const [processing, setProcessing] = useState(false);
   const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_percent: number } | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const mpInstanceRef = useRef<any>(null);
+
+  // Poll order status when waiting for async payment (Pix/Boleto)
+  useEffect(() => {
+    if (!orderId || !paymentResult) return;
+    if (paymentResult.status === "approved") return;
+
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("status")
+        .eq("id", orderId)
+        .maybeSingle();
+      if (data?.status === "paid") {
+        setPaymentResult((prev) => prev ? { ...prev, status: "approved" } : prev);
+        track("payment_approved");
+        toast.success("Pagamento aprovado! 🎉");
+        clearInterval(interval);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [orderId, paymentResult, track]);
 
   const { data: offer } = useQuery({
     queryKey: ["public-offer", page?.offer_id],
@@ -258,6 +282,7 @@ export default function PublicCheckout() {
         const result = await response.json();
         track("payment_initiated");
         setPaymentResult(result.payment);
+        if (result.order_id) setOrderId(result.order_id);
 
         if (result.payment.status === "approved") {
           const isSubscription = result.type === "subscription";
@@ -306,14 +331,23 @@ export default function PublicCheckout() {
             <>
               <CheckCircle2 className="h-16 w-16 mx-auto" style={{ color: "#22c55e" }} />
               <h1 className="text-2xl font-bold" style={{ color: "#ededed" }}>Pagamento Aprovado!</h1>
-              <p style={{ color: "rgba(237,237,237,0.6)" }}>Seu pagamento foi processado com sucesso.</p>
+              <p style={{ color: "rgba(237,237,237,0.6)" }}>Seu acesso já foi liberado.</p>
+              <div className="mt-6 rounded-xl p-5" style={{ backgroundColor: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)" }}>
+                <div className="flex items-center justify-center gap-2 mb-2" style={{ color: "#22c55e" }}>
+                  <ArrowLeft className="h-5 w-5" />
+                  <span className="font-semibold">Volte para o site</span>
+                </div>
+                <p className="text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
+                  Retorne à aba do site para acessar o conteúdo liberado.
+                </p>
+              </div>
             </>
           ) : paymentResult.qr_code ? (
             <>
               <QrCode className="h-12 w-12 mx-auto" style={{ color: "#3b82f6" }} />
               <h1 className="text-2xl font-bold" style={{ color: "#ededed" }}>Pague com Pix</h1>
               <p className="text-sm" style={{ color: "rgba(237,237,237,0.6)" }}>
-                Escaneie o QR code ou copie o código abaixo
+                Escaneie o QR code ou copie o código abaixo. Esta tela atualiza sozinha quando o pagamento for confirmado.
               </p>
               {paymentResult.qr_code_base64 && (
                 <img

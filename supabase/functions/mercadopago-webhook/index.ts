@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
       .from("payment_gateways")
       .select("credentials")
       .eq("organization_id", order.organization_id)
-      .eq("provider", "mercadopago")
+      .eq("provider", "mercado_pago")
       .eq("is_active", true)
       .maybeSingle();
 
