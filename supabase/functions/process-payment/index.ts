@@ -223,6 +223,7 @@ Deno.serve(async (req) => {
 
       if (order && subStatus === "paid") {
         fireWebhook(order.id, "order.paid").catch((e) => console.error("webhook fail:", e));
+        notifyWorkspace(order.id).catch((e) => console.error("workspace fail:", e));
       }
 
       return new Response(
@@ -268,6 +269,7 @@ Deno.serve(async (req) => {
 
       if (order && orderStatus === "paid") {
         fireWebhook(order.id, "order.paid").catch((e) => console.error("webhook fail:", e));
+        notifyWorkspace(order.id).catch((e) => console.error("workspace fail:", e));
       }
 
       return new Response(
