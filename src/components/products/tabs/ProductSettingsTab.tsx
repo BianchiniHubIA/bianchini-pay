@@ -167,6 +167,47 @@ export function ProductSettingsTab({ product, onSave }: Props) {
         </CardContent>
       </Card>
 
+      {/* Workspace integration */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <GraduationCap className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Liberação no Bianchini Workspace</CardTitle>
+              <CardDescription>
+                Quando o pagamento for aprovado, o aluno receberá acesso automático ao curso/mentoria configurado abaixo.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="workspace-course-id">ID do curso no Workspace</Label>
+            <Input
+              id="workspace-course-id"
+              placeholder="Ex: 7c9e8f1a-1234-..."
+              value={workspaceCourseId}
+              onChange={(e) => setWorkspaceCourseId(e.target.value)}
+              className="font-mono text-xs"
+            />
+            <p className="text-xs text-muted-foreground">
+              Cole aqui o ID (UUID) do curso/mentoria que existe no Bianchini Workspace. Deixe em branco para não liberar nada automático.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="workspace-course-title">Nome (referência)</Label>
+            <Input
+              id="workspace-course-title"
+              placeholder="Ex: Mentoria Premium 2026"
+              value={workspaceCourseTitle}
+              onChange={(e) => setWorkspaceCourseTitle(e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Webhook */}
       <Card>
         <CardHeader className="pb-4">
