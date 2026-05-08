@@ -135,6 +135,26 @@ export function OfferFormDialog({ open, onClose, onSubmit, offer }: Props) {
                 </FormItem>
               )} />
             </div>
+            <div className="space-y-3 rounded-lg border p-3">
+              <div>
+                <p className="text-sm font-medium">Liberação no Bianchini Workspace</p>
+                <p className="text-xs text-muted-foreground">Vincule este plano a um plano cadastrado no Workspace para liberar o acesso correto após a compra.</p>
+              </div>
+              <FormField control={form.control} name="workspace_plan_id" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ID do plano no Workspace</FormLabel>
+                  <FormControl><Input placeholder="ex: starter, pro, master..." {...field} value={field.value ?? ""} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="workspace_plan_name" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome do plano (opcional)</FormLabel>
+                  <FormControl><Input placeholder="ex: Plano Starter" {...field} value={field.value ?? ""} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
             <FormField control={form.control} name="is_active" render={({ field }) => (
               <FormItem className="flex items-center justify-between rounded-lg border p-3">
                 <FormLabel className="!mt-0">Oferta ativa</FormLabel>
