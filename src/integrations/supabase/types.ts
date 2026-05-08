@@ -395,7 +395,9 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          installment_interest_rate_monthly: number
           installments: number | null
+          interest_free_installments: number | null
           is_active: boolean
           name: string
           organization_id: string
@@ -414,7 +416,9 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          installment_interest_rate_monthly?: number
           installments?: number | null
+          interest_free_installments?: number | null
           is_active?: boolean
           name: string
           organization_id: string
@@ -433,7 +437,9 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          installment_interest_rate_monthly?: number
           installments?: number | null
+          interest_free_installments?: number | null
           is_active?: boolean
           name?: string
           organization_id?: string
