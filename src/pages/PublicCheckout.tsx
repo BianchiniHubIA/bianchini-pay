@@ -62,6 +62,7 @@ export default function PublicCheckout() {
         if (!res.ok) return;
         const data = await res.json();
         if (data.workspace_url) setWorkspaceUrl(data.workspace_url);
+        if (data.workspace_enabled) setWorkspaceEnabled(true);
         if (data.workspace_access) setWorkspaceAccess(data.workspace_access);
         if (data.status === "paid") {
           setPaymentResult((prev) => {
