@@ -1,6 +1,7 @@
-import { useState, type ReactNode, useMemo } from "react";
+import { useState, type ReactNode, useMemo, useEffect } from "react";
 import { User, Mail, Phone, FileText, Lock, CreditCard } from "lucide-react";
 import { PixIcon, BoletoIcon } from "@/components/icons/PaymentIcons";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LeadCaptureFormProps {
   primaryColor: string;
@@ -11,7 +12,15 @@ interface LeadCaptureFormProps {
   billingType?: string;
   maxInstallments?: number;
   totalCents?: number;
+  checkoutPageId?: string;
   onSubmit?: (data: LeadFormData) => void;
+}
+
+interface InstallmentOption {
+  installments: number;
+  installment_amount_cents: number;
+  total_amount_cents: number;
+  installment_rate: number;
 }
 
 export interface LeadFormData {
@@ -86,6 +95,7 @@ export function LeadCaptureForm({
   billingType,
   maxInstallments = 1,
   totalCents = 0,
+  checkoutPageId,
   onSubmit,
 }: LeadCaptureFormProps) {
   const isRecurring = billingType === "recurring";
@@ -104,6 +114,42 @@ export function LeadCaptureForm({
   });
 
   const cardBrand = useMemo(() => detectCardBrand(form.cardNumber || ""), [form.cardNumber]);
+
+  const cardBin = useMemo(() => (form.cardNumber || "").replace(/\D/g, "").slice(0, 6), [form.cardNumber]);
+
+  const [installmentOptions, setInstallmentOptions] = useState<InstallmentOption[]>([]);
+
+  useEffect(() => {
+    if (form.paymentMethod !== "credit_card" || !checkoutPageId || totalCents <= 0 || maxInstallments <= 1) {
+      setInstallmentOptions([]);
+      return;
+    }
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("get-installments", {
+          body: {
+            checkout_page_id: checkoutPageId,
+            amount_cents: totalCents,
+            bin: cardBin.length >= 6 ? cardBin : undefined,
+            max_installments: maxInstallments,
+          },
+        });
+        if (cancelled) return;
+        if (error || !data?.options) {
+          setInstallmentOptions([]);
+          return;
+        }
+        setInstallmentOptions(data.options as InstallmentOption[]);
+      } catch {
+        if (!cancelled) setInstallmentOptions([]);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [form.paymentMethod, cardBin, totalCents, maxInstallments, checkoutPageId]);
 
   const handleChange = (field: keyof LeadFormData, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -296,12 +342,31 @@ export function LeadCaptureForm({
                   "--tw-ring-color": primaryColor,
                 } as React.CSSProperties}
               >
-                {Array.from({ length: maxInstallments }, (_, i) => i + 1).map((n) => {
-                  const per = (totalCents / n / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-                  const total = (totalCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                {(installmentOptions.length > 0
+                  ? installmentOptions
+                  : Array.from({ length: maxInstallments }, (_, i) => ({
+                      installments: i + 1,
+                      installment_amount_cents: Math.round(totalCents / (i + 1)),
+                      total_amount_cents: totalCents,
+                      installment_rate: 0,
+                    }))
+                ).map((opt) => {
+                  const fmt = (c: number) =>
+                    (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                  const per = fmt(opt.installment_amount_cents);
+                  const total = fmt(opt.total_amount_cents);
+                  const hasInterest = opt.installment_rate > 0;
+                  let label: string;
+                  if (opt.installments === 1) {
+                    label = `1x de ${per} à vista`;
+                  } else if (hasInterest) {
+                    label = `${opt.installments}x de ${per} (total ${total} com juros)`;
+                  } else {
+                    label = `${opt.installments}x de ${per} sem juros`;
+                  }
                   return (
-                    <option key={n} value={n}>
-                      {n}x de {per} {n === 1 ? "à vista" : `(total ${total})`}
+                    <option key={opt.installments} value={opt.installments}>
+                      {label}
                     </option>
                   );
                 })}

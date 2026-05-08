@@ -20,6 +20,7 @@ interface CheckoutPreviewProps {
   billingType: string;
   maxInstallments?: number;
   blocksLayout?: any;
+  checkoutPageId?: string;
   onLeadSubmit?: (data: LeadFormData) => void;
   onCouponValidate?: (code: string) => Promise<{ valid: boolean; discount_percent: number } | null>;
   appliedCoupon?: { code: string; discount_percent: number } | null;
@@ -32,6 +33,7 @@ function formatPrice(cents: number) {
 export function CheckoutPreview({
   headline, ctaText, primaryColor,
   offerName, priceCents, billingType, maxInstallments = 1,
+  checkoutPageId,
   onLeadSubmit, onCouponValidate, appliedCoupon: externalCoupon,
 }: CheckoutPreviewProps) {
   const price = formatPrice(priceCents);
@@ -225,6 +227,7 @@ export function CheckoutPreview({
             billingType={billingType}
             maxInstallments={maxInstallments}
             totalCents={totalCents}
+            checkoutPageId={checkoutPageId}
             onSubmit={onLeadSubmit}
           />
 
