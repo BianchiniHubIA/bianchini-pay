@@ -44,6 +44,8 @@ export function OfferFormDialog({ open, onClose, onSubmit, offer }: Props) {
       installments: offer?.installments ?? 1,
       trial_days: offer?.trial_days ?? 0,
       is_active: offer?.is_active ?? true,
+      workspace_plan_id: (offer as any)?.workspace_plan_id ?? "",
+      workspace_plan_name: (offer as any)?.workspace_plan_name ?? "",
     },
   });
 
