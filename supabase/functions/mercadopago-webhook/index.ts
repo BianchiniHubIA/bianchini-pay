@@ -43,6 +43,21 @@ async function fireWebhook(orderId: string, event: string) {
   }
 }
 
+async function notifyWorkspace(orderId: string) {
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/notify-workspace`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({ order_id: orderId }),
+    });
+  } catch (e) {
+    console.error("notify-workspace failed", e);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
