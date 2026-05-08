@@ -112,8 +112,6 @@ export function LeadCaptureForm({
 
   const cardBrand = useMemo(() => detectCardBrand(form.cardNumber || ""), [form.cardNumber]);
 
-  const cardBin = useMemo(() => (form.cardNumber || "").replace(/\D/g, "").slice(0, 6), [form.cardNumber]);
-
   const installmentOptions = useMemo(
     () =>
       computeInstallmentOptions(
