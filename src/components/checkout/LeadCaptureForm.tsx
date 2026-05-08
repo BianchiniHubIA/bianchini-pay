@@ -95,6 +95,7 @@ export function LeadCaptureForm({
   billingType,
   maxInstallments = 1,
   totalCents = 0,
+  checkoutPageId,
   onSubmit,
 }: LeadCaptureFormProps) {
   const isRecurring = billingType === "recurring";
