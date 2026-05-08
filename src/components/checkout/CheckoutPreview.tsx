@@ -20,6 +20,7 @@ interface CheckoutPreviewProps {
   billingType: string;
   maxInstallments?: number;
   blocksLayout?: any;
+  checkoutPageId?: string;
   onLeadSubmit?: (data: LeadFormData) => void;
   onCouponValidate?: (code: string) => Promise<{ valid: boolean; discount_percent: number } | null>;
   appliedCoupon?: { code: string; discount_percent: number } | null;
