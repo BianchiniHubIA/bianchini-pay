@@ -342,12 +342,31 @@ export function LeadCaptureForm({
                   "--tw-ring-color": primaryColor,
                 } as React.CSSProperties}
               >
-                {Array.from({ length: maxInstallments }, (_, i) => i + 1).map((n) => {
-                  const per = (totalCents / n / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-                  const total = (totalCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                {(installmentOptions.length > 0
+                  ? installmentOptions
+                  : Array.from({ length: maxInstallments }, (_, i) => ({
+                      installments: i + 1,
+                      installment_amount_cents: Math.round(totalCents / (i + 1)),
+                      total_amount_cents: totalCents,
+                      installment_rate: 0,
+                    }))
+                ).map((opt) => {
+                  const fmt = (c: number) =>
+                    (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                  const per = fmt(opt.installment_amount_cents);
+                  const total = fmt(opt.total_amount_cents);
+                  const hasInterest = opt.installment_rate > 0;
+                  let label: string;
+                  if (opt.installments === 1) {
+                    label = `1x de ${per} à vista`;
+                  } else if (hasInterest) {
+                    label = `${opt.installments}x de ${per} (total ${total} com juros)`;
+                  } else {
+                    label = `${opt.installments}x de ${per} sem juros`;
+                  }
                   return (
-                    <option key={n} value={n}>
-                      {n}x de {per} {n === 1 ? "à vista" : `(total ${total})`}
+                    <option key={opt.installments} value={opt.installments}>
+                      {label}
                     </option>
                   );
                 })}
