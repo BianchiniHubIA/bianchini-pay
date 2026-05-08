@@ -41,26 +41,51 @@ export default function PublicCheckout() {
   const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_percent: number } | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [workspaceAccess, setWorkspaceAccess] = useState<WorkspaceAccess | null>(null);
+  const [workspaceUrl, setWorkspaceUrl] = useState<string | null>(null);
   const mpInstanceRef = useRef<any>(null);
 
-  // Poll order status when waiting for async payment (Pix/Boleto)
+  // Poll order status + workspace credentials via edge function (works for anon)
   useEffect(() => {
     if (!orderId || !paymentResult) return;
-    if (paymentResult.status === "approved") return;
 
-    const interval = setInterval(async () => {
-      const { data } = await supabase
-        .from("orders")
-        .select("status")
-        .eq("id", orderId)
-        .maybeSingle();
-      if (data?.status === "paid") {
-        setPaymentResult((prev) => prev ? { ...prev, status: "approved" } : prev);
-        track("payment_approved");
-        toast.success("Pagamento aprovado! 🎉");
-        clearInterval(interval);
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    let stopped = false;
+
+    const poll = async () => {
+      try {
+        const res = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/get-order-access?order_id=${orderId}`,
+          { headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY } }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.workspace_url) setWorkspaceUrl(data.workspace_url);
+        if (data.workspace_access) setWorkspaceAccess(data.workspace_access);
+        if (data.status === "paid") {
+          setPaymentResult((prev) => {
+            if (!prev) return prev;
+            if (prev.status !== "approved") {
+              track("payment_approved");
+              toast.success("Pagamento aprovado! 🎉");
+            }
+            return { ...prev, status: "approved" };
+          });
+          // Stop only when we already have credentials (or product has no workspace release)
+          if (data.workspace_access || !data.workspace_enabled) {
+            stopped = true;
+          }
+        }
+      } catch (e) {
+        console.error("poll error", e);
       }
-    }, 4000);
+    };
+
+    poll();
+    const interval = setInterval(() => {
+      if (stopped) { clearInterval(interval); return; }
+      poll();
+    }, 3500);
 
     return () => clearInterval(interval);
   }, [orderId, paymentResult, track]);
