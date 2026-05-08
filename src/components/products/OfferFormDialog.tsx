@@ -17,6 +17,8 @@ const offerSchema = z.object({
   billing_type: z.enum(["one_time", "recurring"]),
   billing_interval: z.enum(["monthly", "quarterly", "semiannual", "annual"]).optional(),
   installments: z.coerce.number().min(1).max(12).default(1),
+  interest_free_installments: z.coerce.number().min(1).max(12).default(1),
+  installment_interest_rate_monthly: z.coerce.number().min(0).max(20).default(2.99),
   trial_days: z.coerce.number().min(0).default(0),
   is_active: z.boolean().default(true),
   workspace_plan_id: z.string().optional(),
@@ -42,6 +44,8 @@ export function OfferFormDialog({ open, onClose, onSubmit, offer }: Props) {
       billing_type: offer?.billing_type ?? "one_time",
       billing_interval: offer?.billing_interval ?? undefined,
       installments: offer?.installments ?? 1,
+      interest_free_installments: (offer as any)?.interest_free_installments ?? offer?.installments ?? 1,
+      installment_interest_rate_monthly: Number((offer as any)?.installment_interest_rate_monthly ?? 2.99),
       trial_days: offer?.trial_days ?? 0,
       is_active: offer?.is_active ?? true,
       workspace_plan_id: (offer as any)?.workspace_plan_id ?? "",
@@ -134,6 +138,28 @@ export function OfferFormDialog({ open, onClose, onSubmit, offer }: Props) {
                   <FormMessage />
                 </FormItem>
               )} />
+            </div>
+            <div className="space-y-3 rounded-lg border p-3">
+              <div>
+                <p className="text-sm font-medium">Juros do parcelamento</p>
+                <p className="text-xs text-muted-foreground">Até quantas parcelas a equipe absorve o juros. Acima disso, o juros é repassado ao cliente (somado ao valor total).</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="interest_free_installments" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Parcelas sem juros até</FormLabel>
+                    <FormControl><Input type="number" min={1} max={12} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="installment_interest_rate_monthly" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Juros ao mês (%)</FormLabel>
+                    <FormControl><Input type="number" step="0.01" min={0} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
             </div>
             <div className="space-y-3 rounded-lg border p-3">
               <div>
