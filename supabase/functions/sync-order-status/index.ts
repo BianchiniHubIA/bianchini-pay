@@ -156,7 +156,10 @@ Deno.serve(async (req) => {
         .update({ status: newStatus, updated_at: new Date().toISOString() })
         .eq("id", order.id);
 
-      if (newStatus === "paid") await fireWebhook(order.id, "order.paid");
+      if (newStatus === "paid") {
+        await fireWebhook(order.id, "order.paid");
+        await notifyWorkspace(order.id);
+      }
       if (newStatus === "refunded") await fireWebhook(order.id, "order.refunded");
       if (newStatus === "cancelled") await fireWebhook(order.id, "order.cancelled");
     }
