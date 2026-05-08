@@ -27,6 +27,9 @@ export function ProductSettingsTab({ product, onSave }: Props) {
   const [webhookUrl, setWebhookUrl] = useState((product as any).webhook_url ?? "");
   const [webhookSecret, setWebhookSecret] = useState((product as any).webhook_secret ?? "");
 
+  const [workspaceCourseId, setWorkspaceCourseId] = useState((product as any).workspace_course_id ?? "");
+  const [workspaceCourseTitle, setWorkspaceCourseTitle] = useState((product as any).workspace_course_title ?? "");
+
   const [pixelTab, setPixelTab] = useState("facebook");
 
   const generateSecret = () => {
