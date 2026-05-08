@@ -9,6 +9,8 @@ interface LeadCaptureFormProps {
   mutedColor: string;
   ctaText: string;
   billingType?: string;
+  maxInstallments?: number;
+  totalCents?: number;
   onSubmit?: (data: LeadFormData) => void;
 }
 
@@ -18,6 +20,7 @@ export interface LeadFormData {
   whatsapp: string;
   document: string;
   paymentMethod: string;
+  installments: number;
   cardNumber?: string;
   cardExpiry?: string;
   cardCvc?: string;
