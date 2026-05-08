@@ -223,6 +223,8 @@ export function CheckoutPreview({
             mutedColor={rightMuted}
             ctaText={ctaText}
             billingType={billingType}
+            maxInstallments={maxInstallments}
+            totalCents={totalCents}
             onSubmit={onLeadSubmit}
           />
 
