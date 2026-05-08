@@ -43,6 +43,7 @@ export default function PublicCheckout() {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [workspaceAccess, setWorkspaceAccess] = useState<WorkspaceAccess | null>(null);
   const [workspaceUrl, setWorkspaceUrl] = useState<string | null>(null);
+  const [workspaceEnabled, setWorkspaceEnabled] = useState(false);
   const mpInstanceRef = useRef<any>(null);
 
   // Poll order status + workspace credentials via edge function (works for anon)
