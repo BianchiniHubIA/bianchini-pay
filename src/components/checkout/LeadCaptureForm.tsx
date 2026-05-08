@@ -1,7 +1,7 @@
-import { useState, type ReactNode, useMemo, useEffect } from "react";
+import { useState, type ReactNode, useMemo } from "react";
 import { User, Mail, Phone, FileText, Lock, CreditCard } from "lucide-react";
 import { PixIcon, BoletoIcon } from "@/components/icons/PaymentIcons";
-import { supabase } from "@/integrations/supabase/client";
+import { computeInstallmentOptions } from "@/lib/installments";
 
 interface LeadCaptureFormProps {
   primaryColor: string;
@@ -11,16 +11,11 @@ interface LeadCaptureFormProps {
   ctaText: string;
   billingType?: string;
   maxInstallments?: number;
+  interestFreeInstallments?: number;
+  monthlyInterestRate?: number;
   totalCents?: number;
   checkoutPageId?: string;
   onSubmit?: (data: LeadFormData) => void;
-}
-
-interface InstallmentOption {
-  installments: number;
-  installment_amount_cents: number;
-  total_amount_cents: number;
-  installment_rate: number;
 }
 
 export interface LeadFormData {
@@ -94,6 +89,8 @@ export function LeadCaptureForm({
   ctaText,
   billingType,
   maxInstallments = 1,
+  interestFreeInstallments,
+  monthlyInterestRate = 0,
   totalCents = 0,
   checkoutPageId,
   onSubmit,
