@@ -114,39 +114,16 @@ export function LeadCaptureForm({
 
   const cardBin = useMemo(() => (form.cardNumber || "").replace(/\D/g, "").slice(0, 6), [form.cardNumber]);
 
-  const [installmentOptions, setInstallmentOptions] = useState<InstallmentOption[]>([]);
-
-  useEffect(() => {
-    if (form.paymentMethod !== "credit_card" || !checkoutPageId || totalCents <= 0 || maxInstallments <= 1) {
-      setInstallmentOptions([]);
-      return;
-    }
-    let cancelled = false;
-    const run = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke("get-installments", {
-          body: {
-            checkout_page_id: checkoutPageId,
-            amount_cents: totalCents,
-            bin: cardBin.length >= 6 ? cardBin : undefined,
-            max_installments: maxInstallments,
-          },
-        });
-        if (cancelled) return;
-        if (error || !data?.options) {
-          setInstallmentOptions([]);
-          return;
-        }
-        setInstallmentOptions(data.options as InstallmentOption[]);
-      } catch {
-        if (!cancelled) setInstallmentOptions([]);
-      }
-    };
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [form.paymentMethod, cardBin, totalCents, maxInstallments, checkoutPageId]);
+  const installmentOptions = useMemo(
+    () =>
+      computeInstallmentOptions(
+        totalCents,
+        maxInstallments,
+        interestFreeInstallments ?? maxInstallments,
+        monthlyInterestRate
+      ),
+    [totalCents, maxInstallments, interestFreeInstallments, monthlyInterestRate]
+  );
 
   const handleChange = (field: keyof LeadFormData, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
