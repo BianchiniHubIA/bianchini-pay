@@ -56,6 +56,8 @@ export function ProductSettingsTab({ product, onSave }: Props) {
       meta_ads_id: metaAdsId || null,
       webhook_url: webhookUrl || null,
       webhook_secret: webhookSecret || null,
+      workspace_course_id: workspaceCourseId || null,
+      workspace_course_title: workspaceCourseTitle || null,
     });
 
   const pixelConfigs = [
