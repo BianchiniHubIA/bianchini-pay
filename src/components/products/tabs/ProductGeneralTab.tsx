@@ -265,6 +265,8 @@ export function ProductGeneralTab({ product, onSave }: Props) {
               billing_type: data.billing_type,
               billing_interval: data.billing_type === "recurring" ? data.billing_interval : null,
               installments: data.installments,
+              interest_free_installments: data.interest_free_installments,
+              installment_interest_rate_monthly: data.installment_interest_rate_monthly,
               trial_days: data.trial_days,
               is_active: data.is_active,
               workspace_plan_id: data.workspace_plan_id?.trim() || null,
@@ -272,7 +274,7 @@ export function ProductGeneralTab({ product, onSave }: Props) {
             });
             toast.success("Oferta atualizada!");
           } else {
-            await createOffer.mutateAsync({ name: data.name, price_cents: data.price_cents, billing_type: data.billing_type, billing_interval: data.billing_interval, installments: data.installments, trial_days: data.trial_days, is_active: data.is_active, product_id: product.id, workspace_plan_id: data.workspace_plan_id?.trim() || null, workspace_plan_name: data.workspace_plan_name?.trim() || null });
+            await createOffer.mutateAsync({ name: data.name, price_cents: data.price_cents, billing_type: data.billing_type, billing_interval: data.billing_interval, installments: data.installments, interest_free_installments: data.interest_free_installments, installment_interest_rate_monthly: data.installment_interest_rate_monthly, trial_days: data.trial_days, is_active: data.is_active, product_id: product.id, workspace_plan_id: data.workspace_plan_id?.trim() || null, workspace_plan_name: data.workspace_plan_name?.trim() || null });
             toast.success("Oferta criada!");
           }
         }}
