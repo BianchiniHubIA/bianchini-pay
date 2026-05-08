@@ -229,6 +229,8 @@ export function CheckoutPreview({
             ctaText={ctaText}
             billingType={billingType}
             maxInstallments={maxInstallments}
+            interestFreeInstallments={interestFreeInstallments ?? maxInstallments}
+            monthlyInterestRate={monthlyInterestRate}
             totalCents={totalCents}
             checkoutPageId={checkoutPageId}
             onSubmit={onLeadSubmit}
