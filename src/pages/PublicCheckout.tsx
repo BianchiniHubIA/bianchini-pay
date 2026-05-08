@@ -43,6 +43,7 @@ export default function PublicCheckout() {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [workspaceAccess, setWorkspaceAccess] = useState<WorkspaceAccess | null>(null);
   const [workspaceUrl, setWorkspaceUrl] = useState<string | null>(null);
+  const [workspaceEnabled, setWorkspaceEnabled] = useState(false);
   const mpInstanceRef = useRef<any>(null);
 
   // Poll order status + workspace credentials via edge function (works for anon)
@@ -61,6 +62,7 @@ export default function PublicCheckout() {
         if (!res.ok) return;
         const data = await res.json();
         if (data.workspace_url) setWorkspaceUrl(data.workspace_url);
+        if (data.workspace_enabled) setWorkspaceEnabled(true);
         if (data.workspace_access) setWorkspaceAccess(data.workspace_access);
         if (data.status === "paid") {
           setPaymentResult((prev) => {
@@ -360,6 +362,16 @@ export default function PublicCheckout() {
       <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: "#1a1a1a" }}>
         <div className="max-w-md w-full space-y-6 text-center">
           {paymentResult.status === "approved" ? (
+            workspaceEnabled && !(workspaceAccess && (workspaceAccess.temporary_password || workspaceAccess.email)) ? (
+              <>
+                <Loader2 className="h-16 w-16 mx-auto animate-spin" style={{ color: "#e9bf1e" }} />
+                <h1 className="text-2xl font-bold" style={{ color: "#ededed" }}>Pagamento Aprovado!</h1>
+                <p style={{ color: "rgba(237,237,237,0.7)" }}>Configurando seu acesso ao Bianchini Workspace...</p>
+                <p className="text-sm" style={{ color: "rgba(237,237,237,0.5)" }}>
+                  Isso leva apenas alguns segundos. Não feche esta janela.
+                </p>
+              </>
+            ) : (
             <>
               <CheckCircle2 className="h-16 w-16 mx-auto" style={{ color: "#22c55e" }} />
               <h1 className="text-2xl font-bold" style={{ color: "#ededed" }}>Pagamento Aprovado!</h1>
@@ -372,7 +384,7 @@ export default function PublicCheckout() {
                       Seu acesso{workspaceAccess.course_title ? ` ao curso "${workspaceAccess.course_title}"` : ""} foi liberado no Bianchini Workspace.
                     </p>
                     <a
-                      href={workspaceAccess.login_url || workspaceUrl || "#"}
+                      href={workspaceUrl || workspaceAccess.login_url || "#"}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-block px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
@@ -444,6 +456,7 @@ export default function PublicCheckout() {
                 </div>
               )}
             </>
+            )
           ) : paymentResult.qr_code ? (
             <>
               <QrCode className="h-12 w-12 mx-auto" style={{ color: "#3b82f6" }} />
