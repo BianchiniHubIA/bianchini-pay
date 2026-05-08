@@ -33,6 +33,7 @@ function formatPrice(cents: number) {
 export function CheckoutPreview({
   headline, ctaText, primaryColor,
   offerName, priceCents, billingType, maxInstallments = 1,
+  checkoutPageId,
   onLeadSubmit, onCouponValidate, appliedCoupon: externalCoupon,
 }: CheckoutPreviewProps) {
   const price = formatPrice(priceCents);
