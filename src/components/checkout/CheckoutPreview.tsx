@@ -227,6 +227,7 @@ export function CheckoutPreview({
             billingType={billingType}
             maxInstallments={maxInstallments}
             totalCents={totalCents}
+            checkoutPageId={checkoutPageId}
             onSubmit={onLeadSubmit}
           />
 
