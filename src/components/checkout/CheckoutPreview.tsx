@@ -19,6 +19,8 @@ interface CheckoutPreviewProps {
   priceCents: number;
   billingType: string;
   maxInstallments?: number;
+  interestFreeInstallments?: number;
+  monthlyInterestRate?: number;
   blocksLayout?: any;
   checkoutPageId?: string;
   onLeadSubmit?: (data: LeadFormData) => void;
@@ -33,6 +35,7 @@ function formatPrice(cents: number) {
 export function CheckoutPreview({
   headline, ctaText, primaryColor,
   offerName, priceCents, billingType, maxInstallments = 1,
+  interestFreeInstallments, monthlyInterestRate = 0,
   checkoutPageId,
   onLeadSubmit, onCouponValidate, appliedCoupon: externalCoupon,
 }: CheckoutPreviewProps) {
@@ -226,6 +229,8 @@ export function CheckoutPreview({
             ctaText={ctaText}
             billingType={billingType}
             maxInstallments={maxInstallments}
+            interestFreeInstallments={interestFreeInstallments ?? maxInstallments}
+            monthlyInterestRate={monthlyInterestRate}
             totalCents={totalCents}
             checkoutPageId={checkoutPageId}
             onSubmit={onLeadSubmit}

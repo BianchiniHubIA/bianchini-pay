@@ -98,7 +98,7 @@ export default function PublicCheckout() {
       if (!page?.offer_id) return null;
       const { data } = await supabase
         .from("offers")
-        .select("name, price_cents, billing_type, billing_interval, product_id, installments")
+        .select("name, price_cents, billing_type, billing_interval, product_id, installments, interest_free_installments, installment_interest_rate_monthly")
         .eq("id", page.offer_id)
         .single();
       return data;
@@ -245,7 +245,19 @@ export default function PublicCheckout() {
     const discountCents = appliedCoupon
       ? Math.round((offer.price_cents ?? 0) * appliedCoupon.discount_percent / 100)
       : 0;
-    const finalPriceCents = (offer.price_cents ?? 0) - discountCents;
+    const principalCents = (offer.price_cents ?? 0) - discountCents;
+
+    // If credit card with installments above the interest-free limit, apply interest to total.
+    const { computeInstallmentOptions } = await import("@/lib/installments");
+    const opts = computeInstallmentOptions(
+      principalCents,
+      (offer as any).installments ?? 1,
+      (offer as any).interest_free_installments ?? (offer as any).installments ?? 1,
+      Number((offer as any).installment_interest_rate_monthly ?? 0)
+    );
+    const chosen = opts.find((o) => o.installments === (data.installments ?? 1));
+    const finalPriceCents =
+      data.paymentMethod === "credit_card" && chosen ? chosen.total_amount_cents : principalCents;
 
     // 1. Save lead
     await supabase.from("leads").insert({
@@ -555,6 +567,8 @@ export default function PublicCheckout() {
         priceCents={offer?.price_cents ?? 0}
         billingType={offer?.billing_type ?? "one_time"}
         maxInstallments={(offer as any)?.installments ?? 1}
+        interestFreeInstallments={(offer as any)?.interest_free_installments ?? (offer as any)?.installments ?? 1}
+        monthlyInterestRate={Number((offer as any)?.installment_interest_rate_monthly ?? 0)}
         checkoutPageId={page.id}
         blocksLayout={(page as any).blocks_layout ?? undefined}
         onLeadSubmit={handleLeadSubmit}

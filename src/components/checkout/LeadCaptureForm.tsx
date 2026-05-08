@@ -1,7 +1,7 @@
-import { useState, type ReactNode, useMemo, useEffect } from "react";
+import { useState, type ReactNode, useMemo } from "react";
 import { User, Mail, Phone, FileText, Lock, CreditCard } from "lucide-react";
 import { PixIcon, BoletoIcon } from "@/components/icons/PaymentIcons";
-import { supabase } from "@/integrations/supabase/client";
+import { computeInstallmentOptions } from "@/lib/installments";
 
 interface LeadCaptureFormProps {
   primaryColor: string;
@@ -11,16 +11,11 @@ interface LeadCaptureFormProps {
   ctaText: string;
   billingType?: string;
   maxInstallments?: number;
+  interestFreeInstallments?: number;
+  monthlyInterestRate?: number;
   totalCents?: number;
   checkoutPageId?: string;
   onSubmit?: (data: LeadFormData) => void;
-}
-
-interface InstallmentOption {
-  installments: number;
-  installment_amount_cents: number;
-  total_amount_cents: number;
-  installment_rate: number;
 }
 
 export interface LeadFormData {
@@ -94,6 +89,8 @@ export function LeadCaptureForm({
   ctaText,
   billingType,
   maxInstallments = 1,
+  interestFreeInstallments,
+  monthlyInterestRate = 0,
   totalCents = 0,
   checkoutPageId,
   onSubmit,
@@ -115,41 +112,16 @@ export function LeadCaptureForm({
 
   const cardBrand = useMemo(() => detectCardBrand(form.cardNumber || ""), [form.cardNumber]);
 
-  const cardBin = useMemo(() => (form.cardNumber || "").replace(/\D/g, "").slice(0, 6), [form.cardNumber]);
-
-  const [installmentOptions, setInstallmentOptions] = useState<InstallmentOption[]>([]);
-
-  useEffect(() => {
-    if (form.paymentMethod !== "credit_card" || !checkoutPageId || totalCents <= 0 || maxInstallments <= 1) {
-      setInstallmentOptions([]);
-      return;
-    }
-    let cancelled = false;
-    const run = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke("get-installments", {
-          body: {
-            checkout_page_id: checkoutPageId,
-            amount_cents: totalCents,
-            bin: cardBin.length >= 6 ? cardBin : undefined,
-            max_installments: maxInstallments,
-          },
-        });
-        if (cancelled) return;
-        if (error || !data?.options) {
-          setInstallmentOptions([]);
-          return;
-        }
-        setInstallmentOptions(data.options as InstallmentOption[]);
-      } catch {
-        if (!cancelled) setInstallmentOptions([]);
-      }
-    };
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [form.paymentMethod, cardBin, totalCents, maxInstallments, checkoutPageId]);
+  const installmentOptions = useMemo(
+    () =>
+      computeInstallmentOptions(
+        totalCents,
+        maxInstallments,
+        interestFreeInstallments ?? maxInstallments,
+        monthlyInterestRate
+      ),
+    [totalCents, maxInstallments, interestFreeInstallments, monthlyInterestRate]
+  );
 
   const handleChange = (field: keyof LeadFormData, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
