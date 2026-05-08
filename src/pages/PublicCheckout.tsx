@@ -364,15 +364,85 @@ export default function PublicCheckout() {
               <CheckCircle2 className="h-16 w-16 mx-auto" style={{ color: "#22c55e" }} />
               <h1 className="text-2xl font-bold" style={{ color: "#ededed" }}>Pagamento Aprovado!</h1>
               <p style={{ color: "rgba(237,237,237,0.6)" }}>Seu acesso já foi liberado.</p>
-              <div className="mt-6 rounded-xl p-5" style={{ backgroundColor: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)" }}>
-                <div className="flex items-center justify-center gap-2 mb-2" style={{ color: "#22c55e" }}>
-                  <ArrowLeft className="h-5 w-5" />
-                  <span className="font-semibold">Volte para o site</span>
+
+              {workspaceAccess && (workspaceAccess.temporary_password || workspaceAccess.email) ? (
+                <div className="mt-6 rounded-xl p-5 text-left space-y-4" style={{ backgroundColor: "rgba(233,191,30,0.08)", border: "1px solid rgba(233,191,30,0.3)" }}>
+                  <div className="text-center">
+                    <p className="text-sm mb-3" style={{ color: "rgba(237,237,237,0.7)" }}>
+                      Seu acesso{workspaceAccess.course_title ? ` ao curso "${workspaceAccess.course_title}"` : ""} foi liberado no Bianchini Workspace.
+                    </p>
+                    <a
+                      href={workspaceAccess.login_url || workspaceUrl || "#"}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                      style={{ backgroundColor: "#e9bf1e", color: "#1a1a1a" }}
+                    >
+                      Acessar agora →
+                    </a>
+                  </div>
+
+                  <div className="border-t pt-4 space-y-3" style={{ borderColor: "rgba(233,191,30,0.2)" }}>
+                    <p className="text-xs uppercase tracking-wide" style={{ color: "rgba(237,237,237,0.5)" }}>
+                      Entre com estes dados:
+                    </p>
+
+                    <div>
+                      <p className="text-xs mb-1" style={{ color: "rgba(237,237,237,0.5)" }}>E-mail</p>
+                      <div className="flex items-center gap-2">
+                        <input
+                          readOnly
+                          value={workspaceAccess.email ?? ""}
+                          className="flex-1 text-sm rounded px-2 py-1.5 font-mono"
+                          style={{ backgroundColor: "rgba(237,237,237,0.08)", border: "1px solid rgba(237,237,237,0.1)", color: "#ededed" }}
+                        />
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(workspaceAccess.email ?? ""); toast.success("E-mail copiado!"); }}
+                          className="p-2 rounded hover:opacity-80 transition-opacity"
+                          style={{ backgroundColor: "rgba(237,237,237,0.1)", color: "#ededed" }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {workspaceAccess.temporary_password && (
+                      <div>
+                        <p className="text-xs mb-1" style={{ color: "rgba(237,237,237,0.5)" }}>Senha provisória</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            readOnly
+                            value={workspaceAccess.temporary_password}
+                            className="flex-1 text-sm rounded px-2 py-1.5 font-mono"
+                            style={{ backgroundColor: "rgba(237,237,237,0.08)", border: "1px solid rgba(237,237,237,0.1)", color: "#ededed" }}
+                          />
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(workspaceAccess.temporary_password!); toast.success("Senha copiada!"); }}
+                            className="p-2 rounded hover:opacity-80 transition-opacity"
+                            style={{ backgroundColor: "#e9bf1e", color: "#1a1a1a" }}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <p className="text-xs leading-relaxed" style={{ color: "rgba(237,237,237,0.55)" }}>
+                      ⚠️ Após entrar pela primeira vez, será solicitada a troca por uma senha definitiva.
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
-                  Retorne à aba do site para acessar o conteúdo liberado.
-                </p>
-              </div>
+              ) : (
+                <div className="mt-6 rounded-xl p-5" style={{ backgroundColor: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.25)" }}>
+                  <div className="flex items-center justify-center gap-2 mb-2" style={{ color: "#22c55e" }}>
+                    <ArrowLeft className="h-5 w-5" />
+                    <span className="font-semibold">Volte para o site</span>
+                  </div>
+                  <p className="text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
+                    Retorne à aba do site para acessar o conteúdo liberado.
+                  </p>
+                </div>
+              )}
             </>
           ) : paymentResult.qr_code ? (
             <>
