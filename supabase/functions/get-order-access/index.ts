@@ -45,11 +45,14 @@ Deno.serve(async (req) => {
       workspace_enabled = !!(offer as any)?.products?.workspace_course_id;
     }
 
+    const baseUrl = (WORKSPACE_URL || "").replace(/\/+$/, "");
+    const loginUrl = baseUrl ? `${baseUrl}/auth` : null;
+
     return new Response(
       JSON.stringify({
         status: order.status,
         workspace_enabled,
-        workspace_url: WORKSPACE_URL || null,
+        workspace_url: loginUrl,
         workspace_access: order.workspace_access ?? null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
