@@ -20,6 +20,17 @@ async function fireWebhook(orderId: string, event: string) {
   });
 }
 
+async function notifyWorkspace(orderId: string) {
+  await fetch(`${SUPABASE_URL}/functions/v1/notify-workspace`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+    body: JSON.stringify({ order_id: orderId }),
+  });
+}
+
 interface PaymentRequest {
   offer_id: string;
   checkout_page_id: string;
