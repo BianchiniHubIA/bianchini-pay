@@ -281,6 +281,33 @@ export function LeadCaptureForm({
               } as React.CSSProperties}
             />
           </div>
+          {/* Installments */}
+          {maxInstallments > 1 && totalCents > 0 && (
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: mutedColor }}>
+                Parcelas
+              </label>
+              <select
+                value={form.installments}
+                onChange={(e) => handleChange("installments", Number(e.target.value))}
+                className={`${inputBase} ${focusRingStyle} appearance-none cursor-pointer`}
+                style={{
+                  ...inputStyle(),
+                  "--tw-ring-color": primaryColor,
+                } as React.CSSProperties}
+              >
+                {Array.from({ length: maxInstallments }, (_, i) => i + 1).map((n) => {
+                  const per = (totalCents / n / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                  const total = (totalCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                  return (
+                    <option key={n} value={n}>
+                      {n}x de {per} {n === 1 ? "à vista" : `(total ${total})`}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
         </div>
       )}
 
