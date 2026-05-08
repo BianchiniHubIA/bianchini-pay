@@ -84,6 +84,8 @@ export function LeadCaptureForm({
   mutedColor,
   ctaText,
   billingType,
+  maxInstallments = 1,
+  totalCents = 0,
   onSubmit,
 }: LeadCaptureFormProps) {
   const isRecurring = billingType === "recurring";
@@ -94,6 +96,7 @@ export function LeadCaptureForm({
     whatsapp: "",
     document: "",
     paymentMethod: isRecurring ? "credit_card" : "pix",
+    installments: 1,
     cardNumber: "",
     cardExpiry: "",
     cardCvc: "",
@@ -102,7 +105,7 @@ export function LeadCaptureForm({
 
   const cardBrand = useMemo(() => detectCardBrand(form.cardNumber || ""), [form.cardNumber]);
 
-  const handleChange = (field: keyof LeadFormData, value: string) => {
+  const handleChange = (field: keyof LeadFormData, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
