@@ -69,7 +69,7 @@ export function OfferFormDialog({ open, onClose, onSubmit, offer }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle className="font-heading">
             {offer ? "Editar Oferta" : "Nova Oferta"}
