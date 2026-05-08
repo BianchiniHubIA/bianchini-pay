@@ -43,6 +43,21 @@ async function fireWebhook(orderId: string, event: string) {
   }
 }
 
+async function notifyWorkspace(orderId: string) {
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/notify-workspace`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({ order_id: orderId }),
+    });
+  } catch (e) {
+    console.error("notify-workspace failed", e);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -131,7 +146,10 @@ Deno.serve(async (req) => {
 
       console.log(`Order ${order.id}: ${order.status} -> ${newStatus}`);
 
-      if (newStatus === "paid") await fireWebhook(order.id, "order.paid");
+      if (newStatus === "paid") {
+        await fireWebhook(order.id, "order.paid");
+        await notifyWorkspace(order.id);
+      }
       if (newStatus === "refunded") await fireWebhook(order.id, "order.refunded");
       if (newStatus === "cancelled") await fireWebhook(order.id, "order.cancelled");
     }
