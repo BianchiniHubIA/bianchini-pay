@@ -555,6 +555,7 @@ export default function PublicCheckout() {
         priceCents={offer?.price_cents ?? 0}
         billingType={offer?.billing_type ?? "one_time"}
         maxInstallments={(offer as any)?.installments ?? 1}
+        checkoutPageId={page.id}
         blocksLayout={(page as any).blocks_layout ?? undefined}
         onLeadSubmit={handleLeadSubmit}
         onCouponValidate={handleCouponValidate}
