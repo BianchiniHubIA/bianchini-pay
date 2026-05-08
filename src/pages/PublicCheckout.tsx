@@ -64,7 +64,7 @@ export default function PublicCheckout() {
       if (!page?.offer_id) return null;
       const { data } = await supabase
         .from("offers")
-        .select("name, price_cents, billing_type, billing_interval, product_id")
+        .select("name, price_cents, billing_type, billing_interval, product_id, installments")
         .eq("id", page.offer_id)
         .single();
       return data;
