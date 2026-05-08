@@ -529,6 +529,7 @@ export type Database = {
           payment_method: string | null
           status: Database["public"]["Enums"]["order_status"]
           updated_at: string
+          workspace_access: Json | null
         }
         Insert: {
           amount_cents?: number
@@ -542,6 +543,7 @@ export type Database = {
           payment_method?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
+          workspace_access?: Json | null
         }
         Update: {
           amount_cents?: number
@@ -555,6 +557,7 @@ export type Database = {
           payment_method?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           updated_at?: string
+          workspace_access?: Json | null
         }
         Relationships: [
           {

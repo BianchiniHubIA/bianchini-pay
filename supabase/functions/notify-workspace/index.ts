@@ -89,6 +89,34 @@ Deno.serve(async (req) => {
       errMsg = e instanceof Error ? e.message : String(e);
     }
 
+    // Try to parse Workspace response and persist credentials on the order
+    let workspaceAccess: Record<string, unknown> | null = null;
+    if (responseBody && statusCode && statusCode >= 200 && statusCode < 300) {
+      try {
+        const parsed = JSON.parse(responseBody);
+        const tempPassword =
+          parsed.temporary_password ?? parsed.temp_password ?? parsed.password ?? null;
+        const loginUrl =
+          parsed.login_url ?? parsed.access_url ?? `${WORKSPACE_URL.replace(/\/$/, "")}/auth`;
+        const accessEmail = parsed.email ?? customer.email;
+        if (tempPassword || parsed.user_created) {
+          workspaceAccess = {
+            login_url: loginUrl,
+            email: accessEmail,
+            temporary_password: tempPassword,
+            user_created: parsed.user_created ?? null,
+            course_title: product.workspace_course_title ?? product.name,
+          };
+          await supabase
+            .from("orders")
+            .update({ workspace_access: workspaceAccess })
+            .eq("id", order.id);
+        }
+      } catch (e) {
+        console.error("Failed to parse workspace response:", e);
+      }
+    }
+
     await supabase.from("webhook_deliveries").insert({
       organization_id: order.organization_id,
       product_id: product.id,
