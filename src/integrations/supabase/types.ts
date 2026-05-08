@@ -753,6 +753,8 @@ export type Database = {
           updated_at: string
           webhook_secret: string | null
           webhook_url: string | null
+          workspace_course_id: string | null
+          workspace_course_title: string | null
         }
         Insert: {
           access_type?: string | null
@@ -778,6 +780,8 @@ export type Database = {
           updated_at?: string
           webhook_secret?: string | null
           webhook_url?: string | null
+          workspace_course_id?: string | null
+          workspace_course_title?: string | null
         }
         Update: {
           access_type?: string | null
@@ -803,6 +807,8 @@ export type Database = {
           updated_at?: string
           webhook_secret?: string | null
           webhook_url?: string | null
+          workspace_course_id?: string | null
+          workspace_course_title?: string | null
         }
         Relationships: [
           {
