@@ -19,6 +19,8 @@ const offerSchema = z.object({
   installments: z.coerce.number().min(1).max(12).default(1),
   trial_days: z.coerce.number().min(0).default(0),
   is_active: z.boolean().default(true),
+  workspace_plan_id: z.string().optional(),
+  workspace_plan_name: z.string().optional(),
 });
 
 type OfferFormValues = z.infer<typeof offerSchema>;
