@@ -267,7 +267,7 @@ export default function PublicCheckout() {
             amount_cents: finalPriceCents,
             coupon_code: appliedCoupon?.code ?? null,
             card_token: cardToken,
-            installments: 1,
+            installments: data.installments ?? 1,
             customer: {
               name: data.name.trim(),
               email: data.email.trim().toLowerCase(),
@@ -439,6 +439,7 @@ export default function PublicCheckout() {
         offerName={offer?.name ?? "Oferta"}
         priceCents={offer?.price_cents ?? 0}
         billingType={offer?.billing_type ?? "one_time"}
+        maxInstallments={(offer as any)?.installments ?? 1}
         blocksLayout={(page as any).blocks_layout ?? undefined}
         onLeadSubmit={handleLeadSubmit}
         onCouponValidate={handleCouponValidate}

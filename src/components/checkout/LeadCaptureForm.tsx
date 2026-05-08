@@ -9,6 +9,8 @@ interface LeadCaptureFormProps {
   mutedColor: string;
   ctaText: string;
   billingType?: string;
+  maxInstallments?: number;
+  totalCents?: number;
   onSubmit?: (data: LeadFormData) => void;
 }
 
@@ -18,6 +20,7 @@ export interface LeadFormData {
   whatsapp: string;
   document: string;
   paymentMethod: string;
+  installments: number;
   cardNumber?: string;
   cardExpiry?: string;
   cardCvc?: string;
@@ -81,6 +84,8 @@ export function LeadCaptureForm({
   mutedColor,
   ctaText,
   billingType,
+  maxInstallments = 1,
+  totalCents = 0,
   onSubmit,
 }: LeadCaptureFormProps) {
   const isRecurring = billingType === "recurring";
@@ -91,6 +96,7 @@ export function LeadCaptureForm({
     whatsapp: "",
     document: "",
     paymentMethod: isRecurring ? "credit_card" : "pix",
+    installments: 1,
     cardNumber: "",
     cardExpiry: "",
     cardCvc: "",
@@ -99,7 +105,7 @@ export function LeadCaptureForm({
 
   const cardBrand = useMemo(() => detectCardBrand(form.cardNumber || ""), [form.cardNumber]);
 
-  const handleChange = (field: keyof LeadFormData, value: string) => {
+  const handleChange = (field: keyof LeadFormData, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -275,6 +281,33 @@ export function LeadCaptureForm({
               } as React.CSSProperties}
             />
           </div>
+          {/* Installments */}
+          {maxInstallments > 1 && totalCents > 0 && (
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: mutedColor }}>
+                Parcelas
+              </label>
+              <select
+                value={form.installments}
+                onChange={(e) => handleChange("installments", Number(e.target.value))}
+                className={`${inputBase} ${focusRingStyle} appearance-none cursor-pointer`}
+                style={{
+                  ...inputStyle(),
+                  "--tw-ring-color": primaryColor,
+                } as React.CSSProperties}
+              >
+                {Array.from({ length: maxInstallments }, (_, i) => i + 1).map((n) => {
+                  const per = (totalCents / n / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                  const total = (totalCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                  return (
+                    <option key={n} value={n}>
+                      {n}x de {per} {n === 1 ? "à vista" : `(total ${total})`}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
         </div>
       )}
 
