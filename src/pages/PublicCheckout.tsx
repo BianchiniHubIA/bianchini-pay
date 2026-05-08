@@ -267,7 +267,7 @@ export default function PublicCheckout() {
             amount_cents: finalPriceCents,
             coupon_code: appliedCoupon?.code ?? null,
             card_token: cardToken,
-            installments: 1,
+            installments: data.installments ?? 1,
             customer: {
               name: data.name.trim(),
               email: data.email.trim().toLowerCase(),
