@@ -26,6 +26,13 @@ interface PaymentResult {
   boleto_url?: string;
 }
 
+interface WorkspaceAccess {
+  login_url?: string;
+  email?: string;
+  temporary_password?: string | null;
+  course_title?: string;
+}
+
 export default function PublicCheckout() {
   const { slug } = useParams<{ slug: string }>();
   const { data: page, isLoading, error } = useCheckoutPageBySlug(slug ?? null);
