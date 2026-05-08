@@ -19,6 +19,8 @@ const offerSchema = z.object({
   installments: z.coerce.number().min(1).max(12).default(1),
   trial_days: z.coerce.number().min(0).default(0),
   is_active: z.boolean().default(true),
+  workspace_plan_id: z.string().optional(),
+  workspace_plan_name: z.string().optional(),
 });
 
 type OfferFormValues = z.infer<typeof offerSchema>;
@@ -42,6 +44,8 @@ export function OfferFormDialog({ open, onClose, onSubmit, offer }: Props) {
       installments: offer?.installments ?? 1,
       trial_days: offer?.trial_days ?? 0,
       is_active: offer?.is_active ?? true,
+      workspace_plan_id: (offer as any)?.workspace_plan_id ?? "",
+      workspace_plan_name: (offer as any)?.workspace_plan_name ?? "",
     },
   });
 
@@ -127,6 +131,26 @@ export function OfferFormDialog({ open, onClose, onSubmit, offer }: Props) {
                 <FormItem>
                   <FormLabel>Dias de trial</FormLabel>
                   <FormControl><Input type="number" min={0} {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+            <div className="space-y-3 rounded-lg border p-3">
+              <div>
+                <p className="text-sm font-medium">Liberação no Bianchini Workspace</p>
+                <p className="text-xs text-muted-foreground">Vincule este plano a um plano cadastrado no Workspace para liberar o acesso correto após a compra.</p>
+              </div>
+              <FormField control={form.control} name="workspace_plan_id" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ID do plano no Workspace</FormLabel>
+                  <FormControl><Input placeholder="ex: starter, pro, master..." {...field} value={field.value ?? ""} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="workspace_plan_name" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome do plano (opcional)</FormLabel>
+                  <FormControl><Input placeholder="ex: Plano Starter" {...field} value={field.value ?? ""} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />

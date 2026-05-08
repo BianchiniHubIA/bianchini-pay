@@ -403,6 +403,8 @@ export type Database = {
           product_id: string
           trial_days: number | null
           updated_at: string
+          workspace_plan_id: string | null
+          workspace_plan_name: string | null
         }
         Insert: {
           billing_interval?:
@@ -420,6 +422,8 @@ export type Database = {
           product_id: string
           trial_days?: number | null
           updated_at?: string
+          workspace_plan_id?: string | null
+          workspace_plan_name?: string | null
         }
         Update: {
           billing_interval?:
@@ -437,6 +441,8 @@ export type Database = {
           product_id?: string
           trial_days?: number | null
           updated_at?: string
+          workspace_plan_id?: string | null
+          workspace_plan_name?: string | null
         }
         Relationships: [
           {

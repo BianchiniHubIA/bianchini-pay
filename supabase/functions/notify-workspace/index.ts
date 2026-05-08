@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
     }
 
     const product = (order as any).offers?.products;
+    const offer = (order as any).offers;
     const customer = (order as any).customers;
 
     if (!product?.workspace_course_id) {
@@ -63,6 +64,10 @@ Deno.serve(async (req) => {
       phone: customer.phone ?? null,
       course_id: product.workspace_course_id,
       course_title: product.workspace_course_title ?? product.name,
+      plan_id: offer?.workspace_plan_id ?? null,
+      plan_name: offer?.workspace_plan_name ?? offer?.name ?? null,
+      offer_id: offer?.id ?? null,
+      offer_name: offer?.name ?? null,
       order_id: order.id,
       product_name: product.name,
       amount_cents: order.amount_cents,
