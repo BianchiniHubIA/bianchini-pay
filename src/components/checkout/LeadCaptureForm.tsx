@@ -471,6 +471,25 @@ export function LeadCaptureForm({
         </div>
       </div>
 
+      {/* Endereço (opcional, ativado por produto) */}
+      {requireAddress && (
+        <div className="space-y-2.5 p-3.5 rounded-lg" style={{ backgroundColor: "rgba(0,0,0,0.015)", border: "1px solid rgba(0,0,0,0.06)" }}>
+          <label className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: mutedColor }}>
+            Endereço de entrega
+          </label>
+          <input type="text" placeholder="CEP" required value={form.addressZip} onChange={(e) => handleChange("addressZip", e.target.value)} className={`${inputBase} ${focusRingStyle}`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+          <div className="grid grid-cols-3 gap-2.5">
+            <input type="text" placeholder="Rua" required value={form.addressStreet} onChange={(e) => handleChange("addressStreet", e.target.value)} className={`${inputBase} ${focusRingStyle} col-span-2`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+            <input type="text" placeholder="Nº" required value={form.addressNumber} onChange={(e) => handleChange("addressNumber", e.target.value)} className={`${inputBase} ${focusRingStyle}`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+          </div>
+          <input type="text" placeholder="Complemento (opcional)" value={form.addressComplement} onChange={(e) => handleChange("addressComplement", e.target.value)} className={`${inputBase} ${focusRingStyle}`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+          <div className="grid grid-cols-3 gap-2.5">
+            <input type="text" placeholder="Cidade" required value={form.addressCity} onChange={(e) => handleChange("addressCity", e.target.value)} className={`${inputBase} ${focusRingStyle} col-span-2`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+            <input type="text" placeholder="UF" required maxLength={2} value={form.addressState} onChange={(e) => handleChange("addressState", e.target.value.toUpperCase())} className={`${inputBase} ${focusRingStyle}`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+          </div>
+        </div>
+      )}
+
       {/* Submit */}
       <button
         type="submit"
