@@ -26,6 +26,10 @@ interface CheckoutPreviewProps {
   onLeadSubmit?: (data: LeadFormData) => void;
   onCouponValidate?: (code: string) => Promise<{ valid: boolean; discount_percent: number } | null>;
   appliedCoupon?: { code: string; discount_percent: number } | null;
+  showCouponField?: boolean;
+  requireEmailConfirm?: boolean;
+  requireAddress?: boolean;
+  enabledPaymentMethods?: string[];
 }
 
 function formatPrice(cents: number) {
