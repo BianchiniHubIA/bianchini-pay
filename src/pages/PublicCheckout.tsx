@@ -106,6 +106,21 @@ export default function PublicCheckout() {
     enabled: !!page?.offer_id,
   });
 
+  // Fetch product settings (toggles + payment methods)
+  const { data: productSettings } = useQuery({
+    queryKey: ["public-product-settings", offer?.product_id],
+    queryFn: async () => {
+      if (!offer?.product_id) return null;
+      const { data } = await supabase
+        .from("products")
+        .select("require_address, show_coupon_field, require_email_confirm, payment_methods")
+        .eq("id", offer.product_id)
+        .single();
+      return data;
+    },
+    enabled: !!offer?.product_id,
+  });
+
   // Fetch MP public key from payment_gateways
   const { data: mpPublicKey } = useQuery({
     queryKey: ["mp-public-key", page?.organization_id],
@@ -571,6 +586,10 @@ export default function PublicCheckout() {
         monthlyInterestRate={Number((offer as any)?.installment_interest_rate_monthly ?? 0)}
         checkoutPageId={page.id}
         blocksLayout={(page as any).blocks_layout ?? undefined}
+        showCouponField={productSettings?.show_coupon_field ?? false}
+        requireEmailConfirm={productSettings?.require_email_confirm ?? false}
+        requireAddress={productSettings?.require_address ?? false}
+        enabledPaymentMethods={(productSettings?.payment_methods as string[] | undefined) ?? ["pix", "credit_card", "boleto"]}
         onLeadSubmit={handleLeadSubmit}
         onCouponValidate={handleCouponValidate}
         appliedCoupon={appliedCoupon}

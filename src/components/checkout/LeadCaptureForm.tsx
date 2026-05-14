@@ -15,6 +15,9 @@ interface LeadCaptureFormProps {
   monthlyInterestRate?: number;
   totalCents?: number;
   checkoutPageId?: string;
+  requireEmailConfirm?: boolean;
+  requireAddress?: boolean;
+  enabledPaymentMethods?: string[];
   onSubmit?: (data: LeadFormData) => void;
 }
 
@@ -29,6 +32,13 @@ export interface LeadFormData {
   cardExpiry?: string;
   cardCvc?: string;
   cardHolder?: string;
+  emailConfirm?: string;
+  addressZip?: string;
+  addressStreet?: string;
+  addressNumber?: string;
+  addressComplement?: string;
+  addressCity?: string;
+  addressState?: string;
 }
 
 interface PaymentMethod {
@@ -93,21 +103,40 @@ export function LeadCaptureForm({
   monthlyInterestRate = 0,
   totalCents = 0,
   checkoutPageId,
+  requireEmailConfirm = false,
+  requireAddress = false,
+  enabledPaymentMethods,
   onSubmit,
 }: LeadCaptureFormProps) {
   const isRecurring = billingType === "recurring";
 
+  // Determine which methods are available (subscription forces credit_card)
+  const availableMethods = isRecurring
+    ? ["credit_card"]
+    : (enabledPaymentMethods && enabledPaymentMethods.length > 0
+        ? enabledPaymentMethods
+        : ["pix", "credit_card", "boleto"]);
+
+  const defaultMethod = availableMethods.includes("pix") ? "pix" : availableMethods[0];
+
   const [form, setForm] = useState<LeadFormData>({
     name: "",
     email: "",
+    emailConfirm: "",
     whatsapp: "",
     document: "",
-    paymentMethod: isRecurring ? "credit_card" : "pix",
+    paymentMethod: defaultMethod,
     installments: 1,
     cardNumber: "",
     cardExpiry: "",
     cardCvc: "",
     cardHolder: "",
+    addressZip: "",
+    addressStreet: "",
+    addressNumber: "",
+    addressComplement: "",
+    addressCity: "",
+    addressState: "",
   });
 
   const cardBrand = useMemo(() => detectCardBrand(form.cardNumber || ""), [form.cardNumber]);
@@ -140,6 +169,10 @@ export function LeadCaptureForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (requireEmailConfirm && form.email.trim().toLowerCase() !== (form.emailConfirm || "").trim().toLowerCase()) {
+      alert("Os e-mails não conferem. Verifique e tente novamente.");
+      return;
+    }
     if (onSubmit) {
       onSubmit(form);
     }
@@ -151,9 +184,7 @@ export function LeadCaptureForm({
     { id: "boleto", label: "Boleto", icon: <BoletoIcon className="h-[18px] w-[18px] opacity-60" /> },
   ];
 
-  const paymentMethods = isRecurring
-    ? allPaymentMethods.filter((m) => m.id === "credit_card")
-    : allPaymentMethods;
+  const paymentMethods = allPaymentMethods.filter((m) => availableMethods.includes(m.id));
 
   const inputBase =
     "w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all duration-200 placeholder:text-gray-300 bg-white";
@@ -194,6 +225,31 @@ export function LeadCaptureForm({
           />
         </div>
       </div>
+
+      {/* Confirmar e-mail (opcional, ativado por produto) */}
+      {requireEmailConfirm && (
+        <div className="space-y-1">
+          <label className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: mutedColor }}>
+            Confirme seu e-mail
+          </label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-300" />
+            <input
+              type="email"
+              placeholder="repita seu e-mail"
+              required
+              value={form.emailConfirm}
+              onChange={(e) => handleChange("emailConfirm", e.target.value)}
+              onPaste={(e) => e.preventDefault()}
+              className={`${inputBase} ${focusRingStyle}`}
+              style={{
+                ...inputStyle(true),
+                "--tw-ring-color": primaryColor,
+              } as React.CSSProperties}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Forma de Pagamento */}
       <div className="space-y-1.5">
@@ -414,6 +470,25 @@ export function LeadCaptureForm({
           />
         </div>
       </div>
+
+      {/* Endereço (opcional, ativado por produto) */}
+      {requireAddress && (
+        <div className="space-y-2.5 p-3.5 rounded-lg" style={{ backgroundColor: "rgba(0,0,0,0.015)", border: "1px solid rgba(0,0,0,0.06)" }}>
+          <label className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: mutedColor }}>
+            Endereço de entrega
+          </label>
+          <input type="text" placeholder="CEP" required value={form.addressZip} onChange={(e) => handleChange("addressZip", e.target.value)} className={`${inputBase} ${focusRingStyle}`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+          <div className="grid grid-cols-3 gap-2.5">
+            <input type="text" placeholder="Rua" required value={form.addressStreet} onChange={(e) => handleChange("addressStreet", e.target.value)} className={`${inputBase} ${focusRingStyle} col-span-2`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+            <input type="text" placeholder="Nº" required value={form.addressNumber} onChange={(e) => handleChange("addressNumber", e.target.value)} className={`${inputBase} ${focusRingStyle}`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+          </div>
+          <input type="text" placeholder="Complemento (opcional)" value={form.addressComplement} onChange={(e) => handleChange("addressComplement", e.target.value)} className={`${inputBase} ${focusRingStyle}`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+          <div className="grid grid-cols-3 gap-2.5">
+            <input type="text" placeholder="Cidade" required value={form.addressCity} onChange={(e) => handleChange("addressCity", e.target.value)} className={`${inputBase} ${focusRingStyle} col-span-2`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+            <input type="text" placeholder="UF" required maxLength={2} value={form.addressState} onChange={(e) => handleChange("addressState", e.target.value.toUpperCase())} className={`${inputBase} ${focusRingStyle}`} style={{ ...inputStyle(), "--tw-ring-color": primaryColor } as React.CSSProperties} />
+          </div>
+        </div>
+      )}
 
       {/* Submit */}
       <button
