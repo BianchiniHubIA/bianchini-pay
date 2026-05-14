@@ -586,6 +586,10 @@ export default function PublicCheckout() {
         monthlyInterestRate={Number((offer as any)?.installment_interest_rate_monthly ?? 0)}
         checkoutPageId={page.id}
         blocksLayout={(page as any).blocks_layout ?? undefined}
+        showCouponField={productSettings?.show_coupon_field ?? false}
+        requireEmailConfirm={productSettings?.require_email_confirm ?? false}
+        requireAddress={productSettings?.require_address ?? false}
+        enabledPaymentMethods={(productSettings?.payment_methods as string[] | undefined) ?? ["pix", "credit_card", "boleto"]}
         onLeadSubmit={handleLeadSubmit}
         onCouponValidate={handleCouponValidate}
         appliedCoupon={appliedCoupon}
