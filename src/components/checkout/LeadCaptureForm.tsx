@@ -169,6 +169,10 @@ export function LeadCaptureForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (requireEmailConfirm && form.email.trim().toLowerCase() !== (form.emailConfirm || "").trim().toLowerCase()) {
+      alert("Os e-mails não conferem. Verifique e tente novamente.");
+      return;
+    }
     if (onSubmit) {
       onSubmit(form);
     }
@@ -180,9 +184,7 @@ export function LeadCaptureForm({
     { id: "boleto", label: "Boleto", icon: <BoletoIcon className="h-[18px] w-[18px] opacity-60" /> },
   ];
 
-  const paymentMethods = isRecurring
-    ? allPaymentMethods.filter((m) => m.id === "credit_card")
-    : allPaymentMethods;
+  const paymentMethods = allPaymentMethods.filter((m) => availableMethods.includes(m.id));
 
   const inputBase =
     "w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all duration-200 placeholder:text-gray-300 bg-white";
