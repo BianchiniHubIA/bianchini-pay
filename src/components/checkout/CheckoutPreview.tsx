@@ -241,6 +241,9 @@ export function CheckoutPreview({
             monthlyInterestRate={monthlyInterestRate}
             totalCents={totalCents}
             checkoutPageId={checkoutPageId}
+            requireEmailConfirm={requireEmailConfirm}
+            requireAddress={requireAddress}
+            enabledPaymentMethods={enabledPaymentMethods}
             onSubmit={onLeadSubmit}
           />
 
