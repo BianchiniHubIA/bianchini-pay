@@ -15,10 +15,31 @@ interface Props {
   onSave: (updates: Record<string, any>) => Promise<void>;
 }
 
+const ALL_METHODS = ["pix", "credit_card", "boleto"] as const;
+type PaymentMethod = typeof ALL_METHODS[number];
+
 export function ProductSettingsTab({ product, onSave }: Props) {
   const [requireAddress, setRequireAddress] = useState(product.require_address ?? false);
   const [showCouponField, setShowCouponField] = useState(product.show_coupon_field ?? false);
   const [requireEmailConfirm, setRequireEmailConfirm] = useState(product.require_email_confirm ?? false);
+
+  const initialMethods = ((product as any).payment_methods as string[] | null) ?? ["pix", "credit_card", "boleto"];
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(
+    initialMethods.filter((m): m is PaymentMethod => (ALL_METHODS as readonly string[]).includes(m))
+  );
+
+  const togglePaymentMethod = (m: PaymentMethod) => {
+    setPaymentMethods((prev) => {
+      if (prev.includes(m)) {
+        if (prev.length === 1) {
+          toast.error("Pelo menos um meio de pagamento precisa ficar ativo");
+          return prev;
+        }
+        return prev.filter((x) => x !== m);
+      }
+      return [...prev, m];
+    });
+  };
 
   const [fbPixelId, setFbPixelId] = useState(product.fb_pixel_id ?? "");
   const [gaTrackingId, setGaTrackingId] = useState(product.ga_tracking_id ?? "");
@@ -51,6 +72,7 @@ export function ProductSettingsTab({ product, onSave }: Props) {
       require_address: requireAddress,
       show_coupon_field: showCouponField,
       require_email_confirm: requireEmailConfirm,
+      payment_methods: paymentMethods,
       fb_pixel_id: fbPixelId || null,
       ga_tracking_id: gaTrackingId || null,
       google_ads_id: googleAdsId || null,
