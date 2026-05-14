@@ -103,21 +103,40 @@ export function LeadCaptureForm({
   monthlyInterestRate = 0,
   totalCents = 0,
   checkoutPageId,
+  requireEmailConfirm = false,
+  requireAddress = false,
+  enabledPaymentMethods,
   onSubmit,
 }: LeadCaptureFormProps) {
   const isRecurring = billingType === "recurring";
 
+  // Determine which methods are available (subscription forces credit_card)
+  const availableMethods = isRecurring
+    ? ["credit_card"]
+    : (enabledPaymentMethods && enabledPaymentMethods.length > 0
+        ? enabledPaymentMethods
+        : ["pix", "credit_card", "boleto"]);
+
+  const defaultMethod = availableMethods.includes("pix") ? "pix" : availableMethods[0];
+
   const [form, setForm] = useState<LeadFormData>({
     name: "",
     email: "",
+    emailConfirm: "",
     whatsapp: "",
     document: "",
-    paymentMethod: isRecurring ? "credit_card" : "pix",
+    paymentMethod: defaultMethod,
     installments: 1,
     cardNumber: "",
     cardExpiry: "",
     cardCvc: "",
     cardHolder: "",
+    addressZip: "",
+    addressStreet: "",
+    addressNumber: "",
+    addressComplement: "",
+    addressCity: "",
+    addressState: "",
   });
 
   const cardBrand = useMemo(() => detectCardBrand(form.cardNumber || ""), [form.cardNumber]);
