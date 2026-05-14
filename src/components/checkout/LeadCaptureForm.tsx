@@ -226,6 +226,31 @@ export function LeadCaptureForm({
         </div>
       </div>
 
+      {/* Confirmar e-mail (opcional, ativado por produto) */}
+      {requireEmailConfirm && (
+        <div className="space-y-1">
+          <label className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: mutedColor }}>
+            Confirme seu e-mail
+          </label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-300" />
+            <input
+              type="email"
+              placeholder="repita seu e-mail"
+              required
+              value={form.emailConfirm}
+              onChange={(e) => handleChange("emailConfirm", e.target.value)}
+              onPaste={(e) => e.preventDefault()}
+              className={`${inputBase} ${focusRingStyle}`}
+              style={{
+                ...inputStyle(true),
+                "--tw-ring-color": primaryColor,
+              } as React.CSSProperties}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Forma de Pagamento */}
       <div className="space-y-1.5">
         <label className="text-[10px] font-semibold uppercase tracking-[0.08em]" style={{ color: mutedColor }}>
