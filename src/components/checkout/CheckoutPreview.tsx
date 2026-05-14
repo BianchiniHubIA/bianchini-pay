@@ -139,55 +139,57 @@ export function CheckoutPreview({
               <p className="text-sm font-medium">{price}</p>
             </div>
 
-            {/* Coupon */}
-            {appliedCoupon ? (
-              <div
-                className="flex items-center justify-between gap-2 py-2.5 px-3 rounded-lg"
-                style={{ backgroundColor: `${leftText}08`, border: `1px solid ${leftDivider}` }}
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <Tag className="h-3.5 w-3.5 flex-shrink-0" style={{ color: accent }} />
-                  <code className="text-xs font-bold truncate" style={{ color: accent }}>{appliedCoupon.code}</code>
-                  <span className="text-[11px] whitespace-nowrap" style={{ color: leftMuted }}>
-                    {appliedCoupon.discount_percent}% off
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-sm font-medium" style={{ color: "#ef4444" }}>-{formatPrice(discountCents)}</span>
-                  <button onClick={removeCoupon} className="p-1 rounded hover:opacity-70" aria-label="Remover cupom">
-                    <X className="h-3 w-3" style={{ color: leftMuted }} />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div>
+            {/* Coupon (only if enabled OR already applied) */}
+            {(showCouponField || appliedCoupon) && (
+              appliedCoupon ? (
                 <div
-                  className="flex items-center gap-2 rounded-lg overflow-hidden"
-                  style={{ border: `1px solid ${leftDivider}` }}
+                  className="flex items-center justify-between gap-2 py-2.5 px-3 rounded-lg"
+                  style={{ backgroundColor: `${leftText}08`, border: `1px solid ${leftDivider}` }}
                 >
-                  <div className="flex items-center gap-2 flex-1 px-3 py-2.5" style={{ backgroundColor: `${leftText}06` }}>
-                    <Tag className="h-3.5 w-3.5 flex-shrink-0" style={{ color: leftMuted }} />
-                    <input
-                      type="text"
-                      placeholder="Código de cupom"
-                      value={couponInput}
-                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                      onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
-                      className="bg-transparent text-xs placeholder:opacity-30 outline-none flex-1 font-mono min-w-0"
-                      style={{ color: leftText }}
-                    />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Tag className="h-3.5 w-3.5 flex-shrink-0" style={{ color: accent }} />
+                    <code className="text-xs font-bold truncate" style={{ color: accent }}>{appliedCoupon.code}</code>
+                    <span className="text-[11px] whitespace-nowrap" style={{ color: leftMuted }}>
+                      {appliedCoupon.discount_percent}% off
+                    </span>
                   </div>
-                  <button
-                    onClick={handleApplyCoupon}
-                    disabled={!couponInput.trim() || couponLoading || !onCouponValidate}
-                    className="px-4 py-2.5 text-xs font-semibold disabled:opacity-30 hover:opacity-80 transition-opacity"
-                    style={{ color: accent }}
-                  >
-                    {couponLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Aplicar"}
-                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-sm font-medium" style={{ color: "#ef4444" }}>-{formatPrice(discountCents)}</span>
+                    <button onClick={removeCoupon} className="p-1 rounded hover:opacity-70" aria-label="Remover cupom">
+                      <X className="h-3 w-3" style={{ color: leftMuted }} />
+                    </button>
+                  </div>
                 </div>
-                {couponError && <p className="text-[11px] mt-1.5" style={{ color: "#ef4444" }}>{couponError}</p>}
-              </div>
+              ) : (
+                <div>
+                  <div
+                    className="flex items-center gap-2 rounded-lg overflow-hidden"
+                    style={{ border: `1px solid ${leftDivider}` }}
+                  >
+                    <div className="flex items-center gap-2 flex-1 px-3 py-2.5" style={{ backgroundColor: `${leftText}06` }}>
+                      <Tag className="h-3.5 w-3.5 flex-shrink-0" style={{ color: leftMuted }} />
+                      <input
+                        type="text"
+                        placeholder="Código de cupom"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                        className="bg-transparent text-xs placeholder:opacity-30 outline-none flex-1 font-mono min-w-0"
+                        style={{ color: leftText }}
+                      />
+                    </div>
+                    <button
+                      onClick={handleApplyCoupon}
+                      disabled={!couponInput.trim() || couponLoading || !onCouponValidate}
+                      className="px-4 py-2.5 text-xs font-semibold disabled:opacity-30 hover:opacity-80 transition-opacity"
+                      style={{ color: accent }}
+                    >
+                      {couponLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Aplicar"}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-[11px] mt-1.5" style={{ color: "#ef4444" }}>{couponError}</p>}
+                </div>
+              )
             )}
 
             <div className="border-t" style={{ borderColor: leftDivider }} />
