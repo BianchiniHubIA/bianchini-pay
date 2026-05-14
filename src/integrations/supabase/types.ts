@@ -757,6 +757,7 @@ export type Database = {
           meta_ads_id: string | null
           name: string
           organization_id: string
+          payment_methods: string[]
           producer_name: string | null
           require_address: boolean | null
           require_email_confirm: boolean | null
@@ -784,6 +785,7 @@ export type Database = {
           meta_ads_id?: string | null
           name: string
           organization_id: string
+          payment_methods?: string[]
           producer_name?: string | null
           require_address?: boolean | null
           require_email_confirm?: boolean | null
@@ -811,6 +813,7 @@ export type Database = {
           meta_ads_id?: string | null
           name?: string
           organization_id?: string
+          payment_methods?: string[]
           producer_name?: string | null
           require_address?: boolean | null
           require_email_confirm?: boolean | null
