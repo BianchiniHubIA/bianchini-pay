@@ -42,6 +42,8 @@ export function CheckoutPreview({
   interestFreeInstallments, monthlyInterestRate = 0,
   checkoutPageId,
   onLeadSubmit, onCouponValidate, appliedCoupon: externalCoupon,
+  showCouponField = false, requireEmailConfirm = false, requireAddress = false,
+  enabledPaymentMethods,
 }: CheckoutPreviewProps) {
   const price = formatPrice(priceCents);
   const isRecurring = billingType === "recurring";
