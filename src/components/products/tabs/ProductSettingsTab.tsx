@@ -126,7 +126,52 @@ export function ProductSettingsTab({ product, onSave }: Props) {
         </CardContent>
       </Card>
 
-      {/* Pixels */}
+      {/* Payment methods */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Wallet className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Meios de Pagamento Aceitos</CardTitle>
+              <CardDescription>Selecione quais formas de pagamento aparecem no checkout deste produto</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { id: "pix" as const, label: "Pix", icon: <PixIcon className="h-5 w-5" /> },
+              { id: "credit_card" as const, label: "Cartão", icon: <CreditCard className="h-5 w-5" /> },
+              { id: "boleto" as const, label: "Boleto", icon: <BoletoIcon className="h-5 w-5" /> },
+            ].map((m) => {
+              const active = paymentMethods.includes(m.id);
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => togglePaymentMethod(m.id)}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                    active
+                      ? "border-primary bg-primary/5"
+                      : "border-border bg-background hover:border-primary/40"
+                  }`}
+                >
+                  <span className={active ? "text-primary" : "text-muted-foreground"}>{m.icon}</span>
+                  <span className="text-sm font-medium">{m.label}</span>
+                  <span className={`text-[10px] uppercase tracking-wide font-semibold ${active ? "text-primary" : "text-muted-foreground/60"}`}>
+                    {active ? "Ativo" : "Desativado"}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Para assinaturas (recorrência), apenas cartão de crédito é processado, mesmo que outros estejam ativos.
+          </p>
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2">
