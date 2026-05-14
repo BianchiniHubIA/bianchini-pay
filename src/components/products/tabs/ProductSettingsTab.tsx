@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Save, CreditCard, BarChart3, Trash2, Plus, Webhook, Copy, RefreshCw, GraduationCap } from "lucide-react";
+import { Save, CreditCard, BarChart3, Trash2, Plus, Webhook, Copy, RefreshCw, GraduationCap, Wallet } from "lucide-react";
+import { PixIcon, BoletoIcon } from "@/components/icons/PaymentIcons";
 import { toast } from "sonner";
 import type { Product } from "@/hooks/useProducts";
 
