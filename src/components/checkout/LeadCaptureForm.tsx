@@ -15,6 +15,9 @@ interface LeadCaptureFormProps {
   monthlyInterestRate?: number;
   totalCents?: number;
   checkoutPageId?: string;
+  requireEmailConfirm?: boolean;
+  requireAddress?: boolean;
+  enabledPaymentMethods?: string[];
   onSubmit?: (data: LeadFormData) => void;
 }
 
@@ -29,6 +32,13 @@ export interface LeadFormData {
   cardExpiry?: string;
   cardCvc?: string;
   cardHolder?: string;
+  emailConfirm?: string;
+  addressZip?: string;
+  addressStreet?: string;
+  addressNumber?: string;
+  addressComplement?: string;
+  addressCity?: string;
+  addressState?: string;
 }
 
 interface PaymentMethod {
