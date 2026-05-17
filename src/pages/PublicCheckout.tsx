@@ -106,19 +106,15 @@ export default function PublicCheckout() {
     enabled: !!page?.offer_id,
   });
 
-  // Fetch product settings (toggles + payment methods)
+  // Fetch product settings (toggles + payment methods) via public RPC
   const { data: productSettings } = useQuery({
-    queryKey: ["public-product-settings", offer?.product_id],
+    queryKey: ["public-product-settings", offer?.id],
     queryFn: async () => {
-      if (!offer?.product_id) return null;
-      const { data } = await supabase
-        .from("products")
-        .select("require_address, show_coupon_field, require_email_confirm, payment_methods")
-        .eq("id", offer.product_id)
-        .single();
-      return data;
+      if (!offer?.id) return null;
+      const { data } = await (supabase as any).rpc("get_public_product_settings", { _offer_id: offer.id });
+      return Array.isArray(data) ? data[0] : data;
     },
-    enabled: !!offer?.product_id,
+    enabled: !!offer?.id,
   });
 
   // Fetch MP public key from payment_gateways
