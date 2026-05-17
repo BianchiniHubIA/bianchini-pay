@@ -1055,6 +1055,15 @@ export type Database = {
       }
     }
     Functions: {
+      get_public_product_settings: {
+        Args: { _offer_id: string }
+        Returns: {
+          payment_methods: Json
+          require_address: boolean
+          require_email_confirm: boolean
+          show_coupon_field: boolean
+        }[]
+      }
       get_user_org_ids: { Args: { _user_id: string }; Returns: string[] }
       has_org_role: {
         Args: {
