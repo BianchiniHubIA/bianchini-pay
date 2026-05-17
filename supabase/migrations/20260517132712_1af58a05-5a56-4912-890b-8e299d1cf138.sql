@@ -1,0 +1,1 @@
+UPDATE public.org_members SET role='owner' WHERE user_id=(SELECT id FROM auth.users WHERE email='victorlbianchini@gmail.com') AND organization_id='7c5cc96b-9b9c-45b1-8be5-e9f3432adabc';
