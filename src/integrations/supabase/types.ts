@@ -1056,7 +1056,7 @@ export type Database = {
     }
     Functions: {
       get_public_product_settings: {
-        Args: { _offer_id: string }
+        Args: { _product_id: string }
         Returns: {
           payment_methods: Json
           require_address: boolean
