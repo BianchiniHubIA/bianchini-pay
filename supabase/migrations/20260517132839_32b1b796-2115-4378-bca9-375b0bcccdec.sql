@@ -1,0 +1,2 @@
+DELETE FROM public.org_members WHERE user_id='700c4e6f-2f9a-4eb0-a260-de063ced6f5c' AND organization_id='097a1ffc-8863-44cf-adeb-5af1ba846928';
+DELETE FROM public.organizations WHERE id='097a1ffc-8863-44cf-adeb-5af1ba846928';
