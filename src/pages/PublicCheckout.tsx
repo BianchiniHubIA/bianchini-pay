@@ -108,13 +108,13 @@ export default function PublicCheckout() {
 
   // Fetch product settings (toggles + payment methods) via public RPC
   const { data: productSettings } = useQuery({
-    queryKey: ["public-product-settings", offer?.id],
+    queryKey: ["public-product-settings", offer?.product_id],
     queryFn: async () => {
-      if (!offer?.id) return null;
-      const { data } = await (supabase as any).rpc("get_public_product_settings", { _offer_id: offer.id });
+      if (!offer?.product_id) return null;
+      const { data } = await (supabase as any).rpc("get_public_product_settings", { _product_id: offer.product_id });
       return Array.isArray(data) ? data[0] : data;
     },
-    enabled: !!offer?.id,
+    enabled: !!offer?.product_id,
   });
 
   // Fetch MP public key from payment_gateways
