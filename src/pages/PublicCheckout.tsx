@@ -35,6 +35,25 @@ interface WorkspaceAccess {
   course_title?: string;
 }
 
+function translateMpStatusDetail(detail?: string | null): string | null {
+  if (!detail) return null;
+  const map: Record<string, string> = {
+    cc_rejected_insufficient_amount: "Cartão sem limite suficiente.",
+    cc_rejected_bad_filled_security_code: "Código de segurança inválido.",
+    cc_rejected_bad_filled_date: "Data de validade inválida.",
+    cc_rejected_bad_filled_card_number: "Número do cartão inválido.",
+    cc_rejected_bad_filled_other: "Dados do cartão inválidos. Revise e tente novamente.",
+    cc_rejected_call_for_authorize: "Você precisa autorizar o pagamento com o banco emissor.",
+    cc_rejected_card_disabled: "Cartão desabilitado. Contate o banco emissor.",
+    cc_rejected_high_risk: "Pagamento recusado por segurança. Tente outro cartão.",
+    cc_rejected_max_attempts: "Limite de tentativas excedido. Tente outro cartão.",
+    cc_rejected_other_reason: "Cartão recusado. Tente outro cartão ou forma de pagamento.",
+    cc_rejected_blacklist: "Cartão não autorizado.",
+    cc_rejected_card_error: "Não foi possível processar o cartão. Tente novamente.",
+  };
+  return map[detail] || "Cartão recusado. Tente outro cartão ou forma de pagamento.";
+}
+
 export default function PublicCheckout() {
   const { slug } = useParams<{ slug: string }>();
   const { data: page, isLoading, error } = useCheckoutPageBySlug(slug ?? null);
