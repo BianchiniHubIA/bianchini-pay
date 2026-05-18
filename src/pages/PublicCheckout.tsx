@@ -79,6 +79,9 @@ export default function PublicCheckout() {
           if (data.workspace_access || !data.workspace_enabled) {
             stopped = true;
           }
+        } else if (data.status === "cancelled" || data.status === "expired" || data.status === "refunded") {
+          setPaymentResult((prev) => prev ? { ...prev, status: "rejected" } : prev);
+          stopped = true;
         }
       } catch (e) {
         console.error("poll error", e);
