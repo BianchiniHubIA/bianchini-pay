@@ -19,11 +19,13 @@ declare global {
 interface PaymentResult {
   id: string;
   status: string;
+  status_detail?: string | null;
   qr_code?: string;
   qr_code_base64?: string;
   ticket_url?: string;
   barcode?: string;
   boleto_url?: string;
+  payment_method?: string;
 }
 
 interface WorkspaceAccess {
@@ -31,6 +33,25 @@ interface WorkspaceAccess {
   email?: string;
   temporary_password?: string | null;
   course_title?: string;
+}
+
+function translateMpStatusDetail(detail?: string | null): string | null {
+  if (!detail) return null;
+  const map: Record<string, string> = {
+    cc_rejected_insufficient_amount: "Cartão sem limite suficiente.",
+    cc_rejected_bad_filled_security_code: "Código de segurança inválido.",
+    cc_rejected_bad_filled_date: "Data de validade inválida.",
+    cc_rejected_bad_filled_card_number: "Número do cartão inválido.",
+    cc_rejected_bad_filled_other: "Dados do cartão inválidos. Revise e tente novamente.",
+    cc_rejected_call_for_authorize: "Você precisa autorizar o pagamento com o banco emissor.",
+    cc_rejected_card_disabled: "Cartão desabilitado. Contate o banco emissor.",
+    cc_rejected_high_risk: "Pagamento recusado por segurança. Tente outro cartão.",
+    cc_rejected_max_attempts: "Limite de tentativas excedido. Tente outro cartão.",
+    cc_rejected_other_reason: "Cartão recusado. Tente outro cartão ou forma de pagamento.",
+    cc_rejected_blacklist: "Cartão não autorizado.",
+    cc_rejected_card_error: "Não foi possível processar o cartão. Tente novamente.",
+  };
+  return map[detail] || "Cartão recusado. Tente outro cartão ou forma de pagamento.";
 }
 
 export default function PublicCheckout() {
@@ -77,6 +98,9 @@ export default function PublicCheckout() {
           if (data.workspace_access || !data.workspace_enabled) {
             stopped = true;
           }
+        } else if (data.status === "cancelled" || data.status === "expired" || data.status === "refunded") {
+          setPaymentResult((prev) => prev ? { ...prev, status: "rejected" } : prev);
+          stopped = true;
         }
       } catch (e) {
         console.error("poll error", e);
@@ -338,7 +362,21 @@ export default function PublicCheckout() {
       if (response.ok) {
         const result = await response.json();
         track("payment_initiated");
-        setPaymentResult(result.payment);
+
+        const mpStatus = result.payment?.status;
+        const isCardFailure =
+          data.paymentMethod === "credit_card" &&
+          mpStatus &&
+          !["approved", "in_process", "pending", "authorized"].includes(mpStatus);
+
+        if (isCardFailure) {
+          const reason = translateMpStatusDetail(result.payment?.status_detail) || "Cartão recusado. Verifique os dados ou tente outro cartão.";
+          toast.error(reason);
+          setProcessing(false);
+          return;
+        }
+
+        setPaymentResult({ ...result.payment, payment_method: data.paymentMethod });
         if (result.order_id) setOrderId(result.order_id);
 
         if (result.payment.status === "approved") {
@@ -535,6 +573,23 @@ export default function PublicCheckout() {
               >
                 Ver Boleto
               </a>
+            </>
+          ) : paymentResult.status === "rejected" || paymentResult.status === "cancelled" ? (
+            <>
+              <div className="h-16 w-16 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(239,68,68,0.15)" }}>
+                <span style={{ color: "#ef4444", fontSize: 32, fontWeight: 700 }}>×</span>
+              </div>
+              <h1 className="text-2xl font-bold" style={{ color: "#ededed" }}>Pagamento não aprovado</h1>
+              <p className="text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
+                {translateMpStatusDetail(paymentResult.status_detail) || "Seu pagamento foi recusado. Tente outro cartão ou forma de pagamento."}
+              </p>
+              <button
+                onClick={() => { setPaymentResult(null); setOrderId(null); }}
+                className="inline-block px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                style={{ backgroundColor: "#e9bf1e", color: "#1a1a1a" }}
+              >
+                Tentar novamente
+              </button>
             </>
           ) : (
             <>
