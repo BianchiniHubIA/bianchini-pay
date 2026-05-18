@@ -19,11 +19,13 @@ declare global {
 interface PaymentResult {
   id: string;
   status: string;
+  status_detail?: string | null;
   qr_code?: string;
   qr_code_base64?: string;
   ticket_url?: string;
   barcode?: string;
   boleto_url?: string;
+  payment_method?: string;
 }
 
 interface WorkspaceAccess {
