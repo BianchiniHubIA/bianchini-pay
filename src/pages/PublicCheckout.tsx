@@ -574,6 +574,23 @@ export default function PublicCheckout() {
                 Ver Boleto
               </a>
             </>
+          ) : paymentResult.status === "rejected" || paymentResult.status === "cancelled" ? (
+            <>
+              <div className="h-16 w-16 mx-auto rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(239,68,68,0.15)" }}>
+                <span style={{ color: "#ef4444", fontSize: 32, fontWeight: 700 }}>×</span>
+              </div>
+              <h1 className="text-2xl font-bold" style={{ color: "#ededed" }}>Pagamento não aprovado</h1>
+              <p className="text-sm" style={{ color: "rgba(237,237,237,0.7)" }}>
+                {translateMpStatusDetail(paymentResult.status_detail) || "Seu pagamento foi recusado. Tente outro cartão ou forma de pagamento."}
+              </p>
+              <button
+                onClick={() => { setPaymentResult(null); setOrderId(null); }}
+                className="inline-block px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                style={{ backgroundColor: "#e9bf1e", color: "#1a1a1a" }}
+              >
+                Tentar novamente
+              </button>
+            </>
           ) : (
             <>
               <Loader2 className="h-12 w-12 mx-auto animate-spin" style={{ color: "#3b82f6" }} />
