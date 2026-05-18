@@ -343,7 +343,21 @@ export default function PublicCheckout() {
       if (response.ok) {
         const result = await response.json();
         track("payment_initiated");
-        setPaymentResult(result.payment);
+
+        const mpStatus = result.payment?.status;
+        const isCardFailure =
+          data.paymentMethod === "credit_card" &&
+          mpStatus &&
+          !["approved", "in_process", "pending", "authorized"].includes(mpStatus);
+
+        if (isCardFailure) {
+          const reason = translateMpStatusDetail(result.payment?.status_detail) || "Cartão recusado. Verifique os dados ou tente outro cartão.";
+          toast.error(reason);
+          setProcessing(false);
+          return;
+        }
+
+        setPaymentResult({ ...result.payment, payment_method: data.paymentMethod });
         if (result.order_id) setOrderId(result.order_id);
 
         if (result.payment.status === "approved") {
